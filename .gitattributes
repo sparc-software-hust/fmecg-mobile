@@ -1,0 +1,5 @@
+lib/certs/** filter=git-crypt diff=git-crypt
+android/app/google-services.json filter=git-crypt diff=git-crypt
+lib/firebase_options.dart filter=git-crypt diff=git-crypt
+ios/Runner/GoogleService-Info.plist filter=git-crypt diff=git-crypt
+firebase.json filter=git-crypt diff=git-crypt
