@@ -62,7 +62,7 @@ class _MyWidgetState extends State<NotificationScreen> {
   Future<List> fetcherNotifications() async {
     try {
       final response = await http.get(
-          Uri.parse('http://192.168.1.72:3000/notification/get'),
+          Uri.parse('http://103.200.20.59:3000/notification/get'),
           headers: {
             "Content-type": "application/json",
             "Authorization": "Bearer $accessToken"

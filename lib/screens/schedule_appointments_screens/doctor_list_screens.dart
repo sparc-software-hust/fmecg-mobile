@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
+import 'package:fmecg_mobile/providers/auth_provider.dart';
 import 'package:fmecg_mobile/screens/schedule_appointments_screens/date_picker_screens.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Doctor {
   final String id;
@@ -45,9 +50,6 @@ class Doctor {
   }
 }
 
-const accessToken =
-    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50SWQiOiI5ZGMzOGQ4OS01NWQxLTRkNDEtOGJmYi1jODg1YmM2ZmYwYmUiLCJyb2xlIjoxLCJpYXQiOjE3MzI4NjAwNzMsImV4cCI6MTczNTQ1MjA3M30.CnGWoUP_5yNkT9sYyaSa2Yc8Ksg-J3isVn_5K_3rMgV-Su2FZ5d55ff_lLEYSQHuCKuPcnMVDoWWK_T1HcRzs8IydskEczUlD2IlB_1j9kIr5aH7IHGOYR0sX-vzOptz1sDkeG8juAglOJ2yFWlLT_DbgDiK4hOE5t5GsS8Nu2f7uE6GhhASKB9g-g7bBRCqLgdR5wsvPEEZAa3lhDZTLMykoiWdTxrR3vFJRgMn7TpHD6HSPTpH_myw1CJfvhWrnvokpcoszeHKabF0VbEqqjtRA8tKNwNVMEsIkHzIpfN_51-8Zx10Y6ti-Z_O349eMO2GylSL6RZfNJuw7XDUXQ";
-
 class DoctorListScreen extends StatefulWidget {
   const DoctorListScreen({super.key});
 
@@ -84,14 +86,18 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   }
 
   Future<List<Doctor>> fetcherDoctors() async {
+    final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
+    print(accessToken);
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? accessToken1 = prefs.getString('access_token');
+    final String? refreshToken = prefs.getString('refresh_token');
+    final String? accessExp = prefs.getString('expiryDate');
     try {
-      final response = await http
-          .get(Uri.parse('http://192.168.100.71:3000/users/doctors'), headers: {
-        "Content-type": "application/json",
-        "Authorization": "Bearer $accessToken"
-      }).timeout(const Duration(seconds: 5));
+      final response = await dioConfigInterceptor.get('/users/doctors');
+      //.timeout(const Duration(seconds: 5));
+      print(response);
       if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body);
+        List jsonResponse = json.decode(response.data);
         setState(() {
           _allDoctors =
               jsonResponse.map((doctor) => Doctor.fromJson(doctor)).toList();

@@ -53,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     print("${email}, ${password}");
     try {
-      final url = Uri.parse("http://192.168.1.6:3003/auth/login");
+      final url = Uri.parse("http://103.200.20.59:3003/auth/login");
       final response = await http.post(
         url,
         headers: {
@@ -74,7 +74,7 @@ class AuthProvider extends ChangeNotifier {
         _roleId = responseData['role'];
         _expiryDate =
             DateTime.fromMillisecondsSinceEpoch(responseData['expired_time']);
-
+        _saveToPrefs();
         return;
       } else {
         print(

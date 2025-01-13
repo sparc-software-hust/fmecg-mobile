@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
+import 'package:fmecg_mobile/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class Doctor {
   final String id;
@@ -61,9 +65,6 @@ class DatePicker extends StatefulWidget {
   State<DatePicker> createState() => _DatePickerState();
 }
 
-const accessToken =
-    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50SWQiOiI5ZGMzOGQ4OS01NWQxLTRkNDEtOGJmYi1jODg1YmM2ZmYwYmUiLCJyb2xlIjoxLCJpYXQiOjE3MzI4NjAwNzMsImV4cCI6MTczNTQ1MjA3M30.CnGWoUP_5yNkT9sYyaSa2Yc8Ksg-J3isVn_5K_3rMgV-Su2FZ5d55ff_lLEYSQHuCKuPcnMVDoWWK_T1HcRzs8IydskEczUlD2IlB_1j9kIr5aH7IHGOYR0sX-vzOptz1sDkeG8juAglOJ2yFWlLT_DbgDiK4hOE5t5GsS8Nu2f7uE6GhhASKB9g-g7bBRCqLgdR5wsvPEEZAa3lhDZTLMykoiWdTxrR3vFJRgMn7TpHD6HSPTpH_myw1CJfvhWrnvokpcoszeHKabF0VbEqqjtRA8tKNwNVMEsIkHzIpfN_51-8Zx10Y6ti-Z_O349eMO2GylSL6RZfNJuw7XDUXQ";
-
 class _DatePickerState extends State<DatePicker> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
@@ -74,10 +75,11 @@ class _DatePickerState extends State<DatePicker> {
     _busyDay = fetcherDate();
   }
 
+  final accessToken = '';
   Future<List<Map<String, dynamic>>> fetcherDate() async {
     try {
       final url = Uri.parse(
-          'http://192.168.100.71:3000/schedules/doctor-id/${widget.doctorId}');
+          'http://103.200.20.59:3000/schedules/doctor-id/${widget.doctorId}');
 
       final response = await http.get(
         url,
@@ -105,7 +107,6 @@ class _DatePickerState extends State<DatePicker> {
 
   Future _sendTimePicker(
       BigInt selectedTime, String doctorName, String doctorId) async {
-    final url = Uri.parse("http://192.168.100.71:3000/schedules/create/doctor");
     final DateTime startDateTime =
         DateTime.fromMillisecondsSinceEpoch(selectedTime.toInt() * 1000);
 
@@ -122,16 +123,21 @@ class _DatePickerState extends State<DatePicker> {
     };
     print(body);
     try {
-      final response = await http.post(url,
+      final url = "http://103.200.20.59:3000/schedules/create/doctor";
+      final response = await dioConfigInterceptor.post(
+        url,
+        data: jsonEncode(body),
+        options: Options(
           headers: {
-            "Content-type": "application/json",
-            "Authorization": "Bearer $accessToken"
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $accessToken",
           },
-          body: jsonEncode(body));
+        ),
+      );
       if (response.statusCode == 201) {
         _showSuccess(true);
       } else {
-        print("Lỗi khi gửi lịch hẹn: ${response.statusCode}, ${response.body}");
+        print("Lỗi khi gửi lịch hẹn: ${response.statusCode}, ${response.data}");
         _showSuccess(false);
       }
     } catch (e) {
@@ -466,9 +472,10 @@ class DoctorPickerModal extends StatelessWidget {
 
   Future<List<Doctor>> fetcherDoctor() async {
     print(scheduleTime);
+    final accessToken = 1;
     try {
       final url = Uri.parse(
-          'http://192.168.100.71:3000/schedules/time/available-doctor/$scheduleTime');
+          'http://103.200.20.59:3000/schedules/time/available-doctor/$scheduleTime');
       final response = await http.get(url, headers: {
         "Authorization": "Bearer $accessToken",
         "Content-Type": "application/json",

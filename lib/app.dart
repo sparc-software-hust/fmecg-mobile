@@ -14,11 +14,11 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BleReactiveScreen();
-    // return BlocProvider(
-    //   create: (context) => AuthenticationBloc(authRepository: AuthRepository()),
-    //   child: const BlocNavigate(),
-    // );
+    //return const BleReactiveScreen();
+    return BlocProvider(
+      create: (context) => AuthenticationBloc(authRepository: AuthRepository()),
+      child: const BlocNavigate(),
+    );
   }
 }
 
@@ -48,7 +48,7 @@ class _BlocNavigateState extends State<BlocNavigate> {
         // } else {
         //   return const Login2Screen();
         // }
-        return const MainScreen();
+        return const SignInScreen();
       },
     );
   }
