@@ -15,8 +15,7 @@ final dioConfigInterceptor = Dio()
   ..options.sendTimeout = const Duration(seconds: 15)
   ..interceptors.add(tokenInterceptor);
 
-final Interceptor tokenInterceptor =
-    QueuedInterceptorsWrapper(onRequest: (options, handler) async {
+final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, handler) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? accessToken = prefs.getString('access_token');
   final String? refreshToken = prefs.getString('refresh_token');
@@ -43,6 +42,7 @@ final Interceptor tokenInterceptor =
       await _logout();
       return;
     } else {
+      print('ágnsdjkg:${res.data}');
       //await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
       final String accessToken = res.data["data"]["access_token"];
       await _saveTokenData(res.data["data"]);
@@ -53,7 +53,7 @@ final Interceptor tokenInterceptor =
   }
   return handler.next(options);
 }, onResponse: (response, handler) {
-  //print('responseee:${response.data}');
+  print('responseee:${response.data}');
   return handler.next(response);
 }, onError: (error, handler) {
   print('errorr:${error.response?.data}');
