@@ -44,8 +44,8 @@ final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, ha
     } else {
       print('ágnsdjkg:${res.data}');
       //await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
-      final String accessToken = res.data["data"]["access_token"];
-      await _saveTokenData(res.data["data"]);
+      final String accessToken = res.data["access_token"];
+      await _saveTokenData(res.data);
       options.headers['Authorization'] = "Bearer $accessToken";
     }
   } else {
