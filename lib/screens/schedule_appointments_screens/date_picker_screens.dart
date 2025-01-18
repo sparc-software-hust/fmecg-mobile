@@ -78,27 +78,13 @@ class _DatePickerState extends State<DatePicker> {
   final accessToken = '';
   Future<List<Map<String, dynamic>>> fetcherDate() async {
     try {
-      final url = Uri.parse(
-          'http://103.200.20.59:3000/schedules/doctor-id/${widget.doctorId}');
+      final response = await dioConfigInterceptor
+          .get('/schedules/doctor-id/${widget.doctorId}');
 
-      final response = await http.get(
-        url,
-        headers: {
-          "Authorization": "Bearer $accessToken",
-          "Content-Type": "application/json",
-        },
-      ).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        print("Request successful");
-        List<dynamic> jsonData = json.decode(response.body);
-        List<Map<String, dynamic>> formattedData =
-            jsonData.map((item) => item as Map<String, dynamic>).toList();
-        return formattedData;
-      } else {
-        print("Request failed with status: ${response.statusCode}");
-        return [];
-      }
+      List<Map<String, dynamic>> formattedData = (response.data as List)
+          .map((item) => item as Map<String, dynamic>)
+          .toList();
+      return formattedData;
     } catch (e) {
       print("Error fetching busy dates: $e");
       return [];
@@ -123,16 +109,9 @@ class _DatePickerState extends State<DatePicker> {
     };
     print(body);
     try {
-      final url = "http://103.200.20.59:3000/schedules/create/doctor";
       final response = await dioConfigInterceptor.post(
-        url,
+        '/schedules/create/doctor',
         data: jsonEncode(body),
-        options: Options(
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $accessToken",
-          },
-        ),
       );
       if (response.statusCode == 201) {
         _showSuccess(true);
@@ -472,25 +451,12 @@ class DoctorPickerModal extends StatelessWidget {
 
   Future<List<Doctor>> fetcherDoctor() async {
     print(scheduleTime);
-    final accessToken = 1;
     try {
-      final url = Uri.parse(
-          'http://103.200.20.59:3000/schedules/time/available-doctor/$scheduleTime');
-      final response = await http.get(url, headers: {
-        "Authorization": "Bearer $accessToken",
-        "Content-Type": "application/json",
-      }).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        print("Request successful");
-        List<dynamic> jsonData = json.decode(response.body);
-        return jsonData
-            .map((item) => Doctor.fromJson(item as Map<String, dynamic>))
-            .toList();
-      } else {
-        print("Request failed with status: ${response.statusCode}");
-        return [];
-      }
+      final response = await dioConfigInterceptor
+          .get('/schedules/time/available-doctor/$scheduleTime');
+      return (response.data as List)
+          .map((item) => Doctor.fromJson(item as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       throw Exception('Failed to load doctor data: $e');
     }

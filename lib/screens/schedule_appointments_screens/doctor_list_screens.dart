@@ -66,7 +66,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   @override
   void initState() {
     super.initState();
-    _futureDoctors = fetcherDoctors();
+    _futureDoctors = fetchDoctors();
   }
 
   void _openDatePicker(BuildContext context, String doctorId, String doctorName,
@@ -85,29 +85,20 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     }
   }
 
-  Future<List<Doctor>> fetcherDoctors() async {
+  Future<List<Doctor>> fetchDoctors() async {
     final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
     print(accessToken);
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? accessToken1 = prefs.getString('access_token');
-    final String? refreshToken = prefs.getString('refresh_token');
-    final String? accessExp = prefs.getString('expiryDate');
     try {
       final response = await dioConfigInterceptor.get('/users/doctors');
-      //.timeout(const Duration(seconds: 5));
-      print(response);
-      if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.data);
-        setState(() {
-          _allDoctors =
-              jsonResponse.map((doctor) => Doctor.fromJson(doctor)).toList();
-          _filteredDoctors = _allDoctors;
-        });
-        return _filteredDoctors;
-      } else {
-        throw Exception('Failed to load doctors');
-      }
+      setState(() {
+        _allDoctors = (response.data as List)
+            .map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>))
+            .toList();
+        _filteredDoctors = List.from(_allDoctors);
+      });
+      return _filteredDoctors;
     } catch (e) {
+      print("Error: $e");
       throw Exception('Failed to load doctors: $e');
     }
   }
@@ -133,7 +124,9 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
       ),
       body: Column(

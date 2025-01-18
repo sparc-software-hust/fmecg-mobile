@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -61,25 +62,16 @@ class _MyWidgetState extends State<NotificationScreen> {
 
   Future<List> fetcherNotifications() async {
     try {
-      final response = await http.get(
-          Uri.parse('http://103.200.20.59:3000/notification/get'),
-          headers: {
-            "Content-type": "application/json",
-            "Authorization": "Bearer $accessToken"
-          }).timeout(const Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body);
-        setState(() {
-          _allNotifications = jsonResponse
-              .map((notification) => Notification.fromJson(notification))
-              .toList();
-          _filteredNotifications = _allNotifications;
-          isLoading = false;
-        });
-        return _filteredNotifications;
-      } else {
-        throw Exception('Failed to load doctors');
-      }
+      final response = await dioConfigInterceptor.get('/notification/get');
+
+      setState(() {
+        _allNotifications = (response.data as List)
+            .map((notification) => Notification.fromJson(notification))
+            .toList();
+        _filteredNotifications = _allNotifications;
+        isLoading = false;
+      });
+      return _filteredNotifications;
     } catch (e) {
       setState(() {
         isLoading = false;

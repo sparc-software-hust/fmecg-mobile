@@ -15,9 +15,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   DateTime _selectedDate = DateTime.now();
   int _selectedDayIndex = DateTime.now().weekday - 1;
 
-  Future _fetcherSchedule() async {
-
-  }
+  Future _fetcherSchedule() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +26,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 fontWeight: FontWeight.bold,
               )),
           centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {},
-          ),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
