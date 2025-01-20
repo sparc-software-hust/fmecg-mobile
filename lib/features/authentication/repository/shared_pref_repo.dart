@@ -7,13 +7,13 @@ class SharedPreprerencesRepo {
 
   static Future<String> getDataUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(keyData) ?? "";
+    return prefs.getString("userInfo") ?? "";
   }
 
   static Future<bool> checkAutoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    final String? data = prefs.getString(keyData);
+    final String? data = prefs.getString('access_token');
     final bool hasLoggedIn = data != "" && data != null;
     return hasLoggedIn;
   }

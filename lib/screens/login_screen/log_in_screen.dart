@@ -49,7 +49,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Image.asset("assets/logo/fmECG_branding.png"),
+        title: Image.asset("assets/images/fmECG_branding.png"),
       ),
       body: SafeArea(
         child: Center(

@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:fmecg_mobile/constants/api_constant.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
 import 'package:fmecg_mobile/providers/user_provider.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:http/http.dart' as http;
@@ -18,6 +19,7 @@ UserProvider userProvider =
 class AuthProvider extends ChangeNotifier {
   String _accessToken = "";
   String _refreshToken = "";
+  Map<String, dynamic>? _userInfo;
   final String _firebaseToken = "";
   DateTime? _expiryDate;
   final int _userId = 0;
@@ -53,7 +55,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     print("${email}, ${password}");
     try {
-      final url = Uri.parse("http://192.168.1.6:3003/auth/login");
+      final url = Uri.parse("http://103.200.20.59:3003/auth/login");
       final response = await http.post(
         url,
         headers: {
@@ -66,7 +68,7 @@ class AuthProvider extends ChangeNotifier {
       );
       //.timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        print("response: ${response.body}");
+        //print("response: ${response.body}");
         final responseData = json.decode(response.body);
         _email = email;
         _accessToken = responseData['access_token'];
@@ -74,7 +76,18 @@ class AuthProvider extends ChangeNotifier {
         _roleId = responseData['role'];
         _expiryDate =
             DateTime.fromMillisecondsSinceEpoch(responseData['expired_time']);
-
+        print("_accessToken: ${_accessToken}");
+        final url = Uri.parse("http://103.200.20.59:3000/users/user-info");
+        final responseInfoData = await http.get(url, headers: {
+          "Authorization": "Bearer $_accessToken",
+          "Content-Type": "application/json",
+        });
+        if (responseInfoData.statusCode == 200) {
+          final responseInfo = json.decode(responseInfoData.body);
+          print("responseInfo: $responseInfo");
+          _userInfo = responseInfo;
+        }
+        _saveToPrefs();
         return;
       } else {
         print(
@@ -95,6 +108,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString('email', _email);
     await prefs.setInt('role', _roleId);
     await prefs.setString('expiryDate', _expiryDate?.toIso8601String() ?? '');
+    await prefs.setString('userInfo', json.encode(_userInfo));
   }
 
   Future<void> _loadFromPrefs() async {

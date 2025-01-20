@@ -15,26 +15,26 @@ final dioConfigInterceptor = Dio()
   ..options.sendTimeout = const Duration(seconds: 15)
   ..interceptors.add(tokenInterceptor);
 
-final Interceptor tokenInterceptor =
-    QueuedInterceptorsWrapper(onRequest: (options, handler) async {
+final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, handler) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? accessToken = prefs.getString('access_token');
   final String? refreshToken = prefs.getString('refresh_token');
-  final int? accessExp = prefs.getInt('expiryDate');
+  final String? accessExp = prefs.getString('expiryDate');
   if (accessToken == null || accessExp == null || refreshToken == null) {
-    // logout
     return;
   }
 
   final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  final bool isExpired = now > accessExp;
+  final int expiryTimestamp = int.tryParse(accessExp) ?? 0;
+
+  final bool isExpired = now > expiryTimestamp;
   if (isExpired) {
     final retryDio = Dio()
       ..options.baseUrl = options.baseUrl
       ..options.headers['Authorization'] = "Bearer $refreshToken";
-    final Response res = await retryDio
-        .post("/auth/refresh-token", data: {"refresh_token": refreshToken});
-
+    final Response res = await retryDio.post(
+        "http://103.200.20.59:3003/auth/refresh-token",
+        data: {"refresh_token": refreshToken});
     if (res.statusCode != 200) {
       // print('false with logout');
       // logout
@@ -42,9 +42,10 @@ final Interceptor tokenInterceptor =
       await _logout();
       return;
     } else {
+      print('ágnsdjkg:${res.data}');
       //await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
-      final String accessToken = res.data["data"]["access_token"];
-      await _saveTokenData(res.data["data"]);
+      final String accessToken = res.data["access_token"];
+      await _saveTokenData(res.data);
       options.headers['Authorization'] = "Bearer $accessToken";
     }
   } else {
@@ -52,7 +53,7 @@ final Interceptor tokenInterceptor =
   }
   return handler.next(options);
 }, onResponse: (response, handler) {
-  // print('responseee:${response.data}');
+  print('responseee:${response.data}');
   return handler.next(response);
 }, onError: (error, handler) {
   print('errorr:${error.response?.data}');
@@ -72,5 +73,5 @@ Future<void> _saveTokenData(Map<String, dynamic> data) async {
   await prefs.setString('refresh_token', data['refresh_token']);
   final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final int expiryDate = now + (15 * 60);
-  await prefs.setInt('expiryDate', expiryDate);
+  await prefs.setString('expiryDate', expiryDate.toString());
 }

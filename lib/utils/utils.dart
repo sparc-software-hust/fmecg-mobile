@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class Utils {
-  static const String apiUrl = "https://api.example.com";
+  static const String apiUrl = "http://103.200.20.59:3000";
   static BuildContext? _globalContext;
   static BuildContext? get globalContext => _globalContext;
 

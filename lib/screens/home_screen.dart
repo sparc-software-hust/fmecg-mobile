@@ -74,6 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final size = MediaQuery.of(context).size;
     final height = size.height;
     final width = size.width;
+    //final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
+    //print("home$accessToken: ");
 
     return Container(
       padding: const EdgeInsets.only(right: 20, left: 20, top: 40, bottom: 10),
@@ -209,23 +211,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            !isShowChart ? ImageCard(
-              imageAsset: 'assets/images/heart_rate_example.jpeg', 
-              functionScanBluetooth: () {
-                Navigator.push(context,
-                  MaterialPageRoute(
-                    builder: (context) => const BleReactiveScreen(),
-                  )
-                );
-              }, 
-              temporaryNothing: () async {
-                FilesManagement.createDirectoryFirstTimeWithDevice();
-                fileToSave = await FilesManagement.setUpFileToSaveDataMeasurement();
-                setState(() {
-                  isShowChart = true;
-                });
-              }
-            ) : LiveChartSample(fileToSave: fileToSave, callBackToPreview: () => setState(() => isShowChart = false)),
+            !isShowChart
+                ? ImageCard(
+                    imageAsset: 'assets/images/heart_rate_example.jpeg',
+                    functionScanBluetooth: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BleReactiveScreen(),
+                          ));
+                    },
+                    temporaryNothing: () async {
+                      FilesManagement.createDirectoryFirstTimeWithDevice();
+                      fileToSave = await FilesManagement
+                          .setUpFileToSaveDataMeasurement();
+                      setState(() {
+                        isShowChart = true;
+                      });
+                    })
+                : LiveChartSample(
+                    fileToSave: fileToSave,
+                    callBackToPreview: () =>
+                        setState(() => isShowChart = false)),
             const SizedBox(height: 20),
             Container(
               alignment: Alignment.topLeft,
@@ -249,7 +256,8 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: InputDecoration(
                 border: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.black)),
-                hintText: "${S.current.enter} ${S.current.phoneNumber.toLowerCase()}",
+                hintText:
+                    "${S.current.enter} ${S.current.phoneNumber.toLowerCase()}",
                 labelText: S.current.phoneNumber,
               ),
               onChanged: (text) => setState(() {
@@ -361,7 +369,8 @@ class SquareContainer extends StatelessWidget {
   final String text;
   final Function? onTap;
 
-  const SquareContainer({Key? key, required this.icon, required this.text, this.onTap})
+  const SquareContainer(
+      {Key? key, required this.icon, required this.text, this.onTap})
       : super(key: key);
 
   @override
@@ -466,9 +475,7 @@ class _NumberCardState extends State<NumberCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  flex: 2,
-                  child: widget.leadingIcon),
+                Expanded(flex: 2, child: widget.leadingIcon),
                 const SizedBox(width: 10),
                 Expanded(
                   flex: 6,

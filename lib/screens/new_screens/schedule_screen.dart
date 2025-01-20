@@ -1,7 +1,53 @@
+import 'package:fmecg_mobile/networks/http_dio.dart';
 import 'package:fmecg_mobile/screens/schedule_appointments_screens/schedule_appointments.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart'; // Import the intl package
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'dart:convert';
+
+class Schedule {
+  final String id;
+  final String patientId;
+  final String patientName;
+  final String doctorName;
+  final DateTime startTime;
+  final DateTime endTime;
+  final int scheduleTypeId;
+  final int statusId;
+  final int scheduleResult;
+
+  Schedule({
+    required this.id,
+    required this.patientId,
+    required this.patientName,
+    required this.doctorName,
+    required this.startTime,
+    required this.endTime,
+    required this.scheduleTypeId,
+    required this.statusId,
+    required this.scheduleResult,
+  });
+
+  factory Schedule.fromJson(Map<String, dynamic> json) {
+    return Schedule(
+      id: json['id'],
+      patientId: json['patient_id'],
+      patientName: json['patient_name'],
+      doctorName: json['doctor_name'],
+      startTime: DateTime.fromMillisecondsSinceEpoch(
+          json['schedule_start_time'] * 1000),
+      endTime:
+          DateTime.fromMillisecondsSinceEpoch(json['schedule_end_time'] * 1000),
+      scheduleTypeId: json['schedule_type_id'],
+      statusId: json['status_id'],
+      scheduleResult: json['schedule_result'],
+    );
+  }
+  @override
+  String toString() {
+    return 'Schedule(id: $id, patientId: $patientId, patientName: $patientName, doctorName: $doctorName, startTime: $startTime, endTime: $endTime)';
+  }
+}
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -14,10 +60,58 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   String _selectedCategory = "Upcoming";
   DateTime _selectedDate = DateTime.now();
   int _selectedDayIndex = DateTime.now().weekday - 1;
+  List<Schedule> _schedules = [];
 
-  Future _fetcherSchedule() async {
-
+  @override
+  void initState() {
+    super.initState();
+    _loadSchedules();
   }
+
+  Future<void> _loadSchedules() async {
+    try {
+      final schedules = await _fetchSchedule();
+      setState(() {
+        _schedules = schedules;
+        print("schedule: ${_schedules[0]}");
+      });
+    } catch (e) {
+      print('Error loading schedules: $e');
+    }
+  }
+
+  Future<List<Schedule>> _fetchSchedule() async {
+    try {
+      final response = await dioConfigInterceptor.get(
+        '/schedules',
+      );
+      print("response: $response");
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => Schedule.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load schedules');
+      }
+    } catch (e) {
+      print("Failed to fetch schedule: $e");
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> _fetchPatientInfo(String patientId) async {
+  try {
+    final response = await dioConfigInterceptor.get('/users/$patientId');
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Failed to fetch patient info');
+    }
+  } catch (e) {
+    print("Error fetching patient info: $e");
+    return {};
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +122,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 fontWeight: FontWeight.bold,
               )),
           centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {},
-          ),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16.0),
@@ -82,8 +172,47 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   },
                 ),
               ),
-              _buildAppointmentSection("Today", "Yarn Gerberg", "Cardiologist",
-                  "August 4", "9:45 AM")
+              Builder(
+                builder: (context) {
+                  final filteredSchedules = _schedules.where((schedule) {
+                    if (_selectedCategory == 'Upcoming') {
+                      return schedule.startTime.isAfter(DateTime.now());
+                    } else if (_selectedCategory == 'Completed') {
+                      return schedule.startTime.isBefore(DateTime.now());
+                    } else {
+                      return true;
+                    }
+                  }).toList();
+
+                  if (filteredSchedules.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'Không có lịch nào cả',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Column(
+                      children: filteredSchedules.map((schedule) {
+                        final startTime = schedule.startTime;
+                        final date = "${DateFormat('MMMM d').format(startTime)}";
+                        final time = "${DateFormat('h:mm a').format(startTime)}";
+                        return _buildAppointmentSection(
+                          schedule.patientName,
+                          schedule.doctorName,
+                          date,
+                          time,
+                          schedule.patientId,
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
             ],
           ),
         ));
@@ -152,93 +281,200 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _buildAppointmentSection(String day, String name,
-      String specialization, String date, String time) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(day,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              )),
-          const SizedBox(height: 10),
-          Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundImage:
-                        AssetImage('assets/images/doctor_image.png'),
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
-                            PopupMenuButton(
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                    value: 1, child: Text("Edit")),
-                                const PopupMenuItem(
-                                    value: 2, child: Text("Delete")),
-                              ],
-                              child: const Icon(Icons.more_vert),
-                            )
-                          ],
-                        ),
-                        Text(specialization,
-                            style: const TextStyle(
-                                color: Color.fromARGB(255, 117, 117, 117))),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Row(
-                          children: [
-                            Icon(Icons.calendar_today,
-                                size: 16, color: Colors.grey[600]),
-                            const SizedBox(width: 5),
-                            Text(date),
-                            const SizedBox(width: 15),
-                            Icon(Icons.access_time,
-                                size: 16, color: Colors.grey[600]),
-                            const SizedBox(width: 5),
-                            Text(time),
-                          ],
-                        ),
-                      ],
+  Widget _buildAppointmentSection(String name, String specialization, Object date, String time, String patientId) {
+    return GestureDetector(
+      onTap: () async {
+        try {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return const Center(child: CircularProgressIndicator());
+            },
+          );    
+          final patientInfo = await _fetchPatientInfo(patientId);
+          print("patientData: $patientInfo");
+          Navigator.pop(context);
+          showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          builder: (BuildContext context) {
+            return FractionallySizedBox(
+              heightFactor: 0.4, 
+              child: _buildPatientInfoModal(patientInfo),
+            );
+          },
+        );
+        }
+        catch (e) {
+          Navigator.pop(context); 
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load patient info')),);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            Card(
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 50,
+                      backgroundImage:
+                          AssetImage('assets/images/doctor_image.png'),
                     ),
-                  )
-                ],
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 16)),
+                              PopupMenuButton(
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                      value: 1, child: Text("Edit")),
+                                  const PopupMenuItem(
+                                      value: 2, child: Text("Delete")),
+                                ],
+                                child: const Icon(Icons.more_vert),
+                              )
+                            ],
+                          ),
+                          Text(specialization,
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 117, 117, 117))),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.calendar_today,
+                                  size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 5),
+                              Text(date as String),
+                              const SizedBox(width: 15),
+                              Icon(Icons.access_time,
+                                  size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 5),
+                              Text(time),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Handle Urgent Message action
-              },
-              child: const Text("Urgent message"),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {},
+                child: const Text("Urgent message"),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+Widget _buildPatientInfoModal(Map<String, dynamic> patientInfo) {
+  return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Patient Information',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 40,
+                      backgroundImage: AssetImage('assets/images/doctor_image.png'),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Name: ${patientInfo['username'] ?? 'N/A'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Age: ${_formatBirthdate(patientInfo['birth']) ?? 'N/A'}',
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Gender: ${patientInfo['gender'] == 1 ? 'Male' : 'Female'}',
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Phone: ${patientInfo['phone_number'] ?? 'N/A'}',
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Close'),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+  String _formatBirthdate(dynamic birthTimestamp) {
+  if (birthTimestamp == null) {
+    return 'N/A';
+  }
+    final birthDate = DateTime.fromMillisecondsSinceEpoch(birthTimestamp * 1000);
+    return DateFormat('MMMM d, yyyy').format(birthDate); 
+}
+
 }
