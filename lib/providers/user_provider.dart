@@ -12,7 +12,7 @@ class UserProvider extends ChangeNotifier {
     user = await User.fromJson(data);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('userInfo', jsonEncode(data));
-    print('gdgndfjkg:${user}');
+    //print('gdgndfjkg:${user}');
     notifyListeners();
   }
 }

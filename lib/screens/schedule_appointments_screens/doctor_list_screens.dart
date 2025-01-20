@@ -86,8 +86,8 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   }
 
   Future<List<Doctor>> fetchDoctors() async {
-    final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
-    print(accessToken);
+    //final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
+    //print(accessToken);
     try {
       final response = await dioConfigInterceptor.get('/users/doctors');
       setState(() {

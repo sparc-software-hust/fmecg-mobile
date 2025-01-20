@@ -68,7 +68,7 @@ class AuthProvider extends ChangeNotifier {
       );
       //.timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
-        print("response: ${response.body}");
+        //print("response: ${response.body}");
         final responseData = json.decode(response.body);
         _email = email;
         _accessToken = responseData['access_token'];

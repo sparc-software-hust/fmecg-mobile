@@ -74,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final size = MediaQuery.of(context).size;
     final height = size.height;
     final width = size.width;
-    final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
-    print("home$accessToken: ");
+    //final accessToken = Provider.of<AuthProvider>(context, listen: false).token;
+    //print("home$accessToken: ");
 
     return Container(
       padding: const EdgeInsets.only(right: 20, left: 20, top: 40, bottom: 10),
