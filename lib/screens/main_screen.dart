@@ -153,7 +153,6 @@ class _MainScreenState extends State<MainScreen> {
     ScheduleScreen(),
     ChatScreen(),
     PersonalInfor(),
-    ScheduleAppointmentScreen()
   ];
 
   @override

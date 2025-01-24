@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
+import 'package:fmecg_mobile/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class Doctor {
   final String id;
@@ -61,9 +65,6 @@ class DatePicker extends StatefulWidget {
   State<DatePicker> createState() => _DatePickerState();
 }
 
-const accessToken =
-    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50SWQiOiI5ZGMzOGQ4OS01NWQxLTRkNDEtOGJmYi1jODg1YmM2ZmYwYmUiLCJyb2xlIjoxLCJpYXQiOjE3MzI4NjAwNzMsImV4cCI6MTczNTQ1MjA3M30.CnGWoUP_5yNkT9sYyaSa2Yc8Ksg-J3isVn_5K_3rMgV-Su2FZ5d55ff_lLEYSQHuCKuPcnMVDoWWK_T1HcRzs8IydskEczUlD2IlB_1j9kIr5aH7IHGOYR0sX-vzOptz1sDkeG8juAglOJ2yFWlLT_DbgDiK4hOE5t5GsS8Nu2f7uE6GhhASKB9g-g7bBRCqLgdR5wsvPEEZAa3lhDZTLMykoiWdTxrR3vFJRgMn7TpHD6HSPTpH_myw1CJfvhWrnvokpcoszeHKabF0VbEqqjtRA8tKNwNVMEsIkHzIpfN_51-8Zx10Y6ti-Z_O349eMO2GylSL6RZfNJuw7XDUXQ";
-
 class _DatePickerState extends State<DatePicker> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
@@ -74,29 +75,16 @@ class _DatePickerState extends State<DatePicker> {
     _busyDay = fetcherDate();
   }
 
+  final accessToken = '';
   Future<List<Map<String, dynamic>>> fetcherDate() async {
     try {
-      final url = Uri.parse(
-          'http://192.168.100.71:3000/schedules/doctor-id/${widget.doctorId}');
+      final response = await dioConfigInterceptor
+          .get('/schedules/doctor-id/${widget.doctorId}');
 
-      final response = await http.get(
-        url,
-        headers: {
-          "Authorization": "Bearer $accessToken",
-          "Content-Type": "application/json",
-        },
-      ).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        print("Request successful");
-        List<dynamic> jsonData = json.decode(response.body);
-        List<Map<String, dynamic>> formattedData =
-            jsonData.map((item) => item as Map<String, dynamic>).toList();
-        return formattedData;
-      } else {
-        print("Request failed with status: ${response.statusCode}");
-        return [];
-      }
+      List<Map<String, dynamic>> formattedData = (response.data as List)
+          .map((item) => item as Map<String, dynamic>)
+          .toList();
+      return formattedData;
     } catch (e) {
       print("Error fetching busy dates: $e");
       return [];
@@ -105,7 +93,6 @@ class _DatePickerState extends State<DatePicker> {
 
   Future _sendTimePicker(
       BigInt selectedTime, String doctorName, String doctorId) async {
-    final url = Uri.parse("http://192.168.100.71:3000/schedules/create/doctor");
     final DateTime startDateTime =
         DateTime.fromMillisecondsSinceEpoch(selectedTime.toInt() * 1000);
 
@@ -122,16 +109,14 @@ class _DatePickerState extends State<DatePicker> {
     };
     print(body);
     try {
-      final response = await http.post(url,
-          headers: {
-            "Content-type": "application/json",
-            "Authorization": "Bearer $accessToken"
-          },
-          body: jsonEncode(body));
+      final response = await dioConfigInterceptor.post(
+        '/schedules/create/doctor',
+        data: jsonEncode(body),
+      );
       if (response.statusCode == 201) {
         _showSuccess(true);
       } else {
-        print("Lỗi khi gửi lịch hẹn: ${response.statusCode}, ${response.body}");
+        print("Lỗi khi gửi lịch hẹn: ${response.statusCode}, ${response.data}");
         _showSuccess(false);
       }
     } catch (e) {
@@ -467,23 +452,11 @@ class DoctorPickerModal extends StatelessWidget {
   Future<List<Doctor>> fetcherDoctor() async {
     print(scheduleTime);
     try {
-      final url = Uri.parse(
-          'http://192.168.100.71:3000/schedules/time/available-doctor/$scheduleTime');
-      final response = await http.get(url, headers: {
-        "Authorization": "Bearer $accessToken",
-        "Content-Type": "application/json",
-      }).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        print("Request successful");
-        List<dynamic> jsonData = json.decode(response.body);
-        return jsonData
-            .map((item) => Doctor.fromJson(item as Map<String, dynamic>))
-            .toList();
-      } else {
-        print("Request failed with status: ${response.statusCode}");
-        return [];
-      }
+      final response = await dioConfigInterceptor
+          .get('/schedules/time/available-doctor/$scheduleTime');
+      return (response.data as List)
+          .map((item) => Doctor.fromJson(item as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       throw Exception('Failed to load doctor data: $e');
     }

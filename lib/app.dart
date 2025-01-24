@@ -14,11 +14,11 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BleReactiveScreen();
-    // return BlocProvider(
-    //   create: (context) => AuthenticationBloc(authRepository: AuthRepository()),
-    //   child: const BlocNavigate(),
-    // );
+    //return const BleReactiveScreen();
+    return BlocProvider(
+      create: (context) => AuthenticationBloc(authRepository: AuthRepository()),
+      child: const BlocNavigate(),
+    );
   }
 }
 
@@ -32,23 +32,22 @@ class BlocNavigate extends StatefulWidget {
 class _BlocNavigateState extends State<BlocNavigate> {
   @override
   void initState() {
-    context.read<AuthenticationBloc>().add(CheckAutoLogin());
     super.initState();
+    context.read<AuthenticationBloc>().add(CheckAutoLogin());
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
       builder: (context, state) {
-        print(state);
-        // if (state is AuthenticationSuccess) {
-        //   return const MainScreen();
-        // } else if (state is AuthenticationLoading) {
-        //   return const CircularProgressIndicator();
-        // } else {
-        //   return const Login2Screen();
-        // }
-        return const MainScreen();
+        if (state is AuthenticationSuccess) {
+          return const MainScreen(); 
+        } else if (state is AuthenticationLoading) {
+          return const Center(
+              child: CircularProgressIndicator()); 
+        } else {
+          return const SignInScreen();
+        }
       },
     );
   }

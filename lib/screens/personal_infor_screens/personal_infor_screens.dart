@@ -1,23 +1,65 @@
+import 'dart:convert';
+
+import 'package:fmecg_mobile/networks/http_dio.dart';
 import 'package:fmecg_mobile/providers/auth_provider.dart';
+import 'package:fmecg_mobile/providers/user_provider.dart';
 import 'package:fmecg_mobile/screens/login_screen/log_in_screen.dart';
 import 'package:fmecg_mobile/screens/personal_infor_screens/listView_infor.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-final List<Map<String, String>> listInfo = [
-  {"title": "Họ và tên", "description": "Đồng Minh Thái"},
-  {"title": "Số điện thoại", "description": "0967827856"},
-  {
-    "title": "Email",
-    "description": "thai.dm279@gmail.com",
-  }
-];
-
-final class PersonalInfor extends StatelessWidget {
+final class PersonalInfor extends StatefulWidget {
   const PersonalInfor({super.key});
 
   @override
+  State<PersonalInfor> createState() => _PersonalInforState();
+}
+
+class _PersonalInforState extends State<PersonalInfor> {
+  late TextEditingController fullNameController;
+  late TextEditingController phoneNumberController;
+  late TextEditingController emailController;
+  late TextEditingController informationController;
+  late TextEditingController dateController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    fullNameController =
+        TextEditingController(text: userProvider.user?.fullName ?? '');
+    phoneNumberController =
+        TextEditingController(text: userProvider.user?.phoneNumber as String ?? '');
+    emailController = TextEditingController(text: authProvider.email ?? '');
+    informationController =
+        TextEditingController(text: userProvider.user?.information ?? '');
+
+    dateController = TextEditingController(
+      text: userProvider.user?.birth != null
+          ? DateFormat('dd-MM-yyyy').format(
+              DateTime.fromMillisecondsSinceEpoch(
+                userProvider.user!.birth!.toInt() * 1000,
+              ),
+            )
+          : "",
+    );
+  }
+
+  @override
+  void dispose() {
+    fullNameController.dispose();
+    phoneNumberController.dispose();
+    emailController.dispose();
+    informationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
         appBar: AppBar(
           title: const Text(
@@ -91,10 +133,31 @@ final class PersonalInfor extends StatelessWidget {
               const SizedBox(
                 height: 8,
               ),
-              ...listInfo.map((item) => ListViewInfo(
-                    title: item['title']!,
-                    description: item['description']!,
-                  )),
+              ListViewInfo(
+                title: "Họ và tên",
+                description: fullNameController.text,
+                controller: fullNameController,
+              ),
+              ListViewInfo(
+                title: "Số điện thoại",
+                description: phoneNumberController.text,
+                controller: phoneNumberController,
+              ),
+              ListViewInfo(
+                title: "Email",
+                description: emailController.text,
+                controller: emailController,
+              ),
+              ListViewInfo(
+                title: "Information",
+                description: informationController.text,
+                controller: informationController,
+              ),
+              ListViewInfo(
+                title: "Birth day",
+                description: dateController.text,
+                controller: dateController,
+              ),
               const SizedBox(
                 height: 12,
               ),
@@ -124,19 +187,19 @@ final class PersonalInfor extends StatelessWidget {
               const SizedBox(
                 height: 12,
               ),
-              ListViewInfo(
+              const ListViewInfo(
                   title: "Trạng thái", description: "Định danh thành công"),
-              Padding(
+              const Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.security,
                       size: 20,
                       color: Colors.green,
                     ),
-                    const Text('Bảo mật tuyệt đối mọi thông tin của bạn',
+                    Text('Bảo mật tuyệt đối mọi thông tin của bạn',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w200,
@@ -151,7 +214,50 @@ final class PersonalInfor extends StatelessWidget {
                   child: Column(
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          try {
+                           
+                            final body = {
+                              "username": fullNameController.text,
+                              "phone_number": phoneNumberController.text,
+                              "information": informationController.text,
+                              "birth": dateController.text.isNotEmpty
+                                  ? DateFormat('dd-MM-yyyy')
+                                          .parse(dateController.text)
+                                          .millisecondsSinceEpoch ~/
+                                      1000
+                                  : null,
+                               "gender": userProvider.user?.gender == 'male' ? 1 : 2,
+                               "status_id": userProvider.user?.status_id ?? 1,
+                               "role_id": userProvider.user?.role,
+                               "account_id": userProvider.user?.accountId,
+                               "id": userProvider.user?.id,
+                            };
+                            print("body: $body");
+                            final response = await dioConfigInterceptor.put('/users', data: (body));
+                            print("response when update login: ${response.statusCode}");
+                            if(response.statusCode == 200) {
+                          
+                            
+                              userProvider.setDataUser(body);
+                              
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Text(
+                                      'Cập nhật thông tin thành công!',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    duration: const Duration(seconds: 3),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            print("Error when update info user: $e");
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                         ),
