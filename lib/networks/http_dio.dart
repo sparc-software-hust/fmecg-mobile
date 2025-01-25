@@ -15,13 +15,14 @@ final dioConfigInterceptor = Dio()
   ..options.sendTimeout = const Duration(seconds: 15)
   ..interceptors.add(tokenInterceptor);
 
-final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, handler) async {
+final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(onRequest: (options, handler) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? accessToken = prefs.getString('access_token');
   final String? refreshToken = prefs.getString('refresh_token');
   final String? accessExp = prefs.getString('expiryDate');
   if (accessToken == null || accessExp == null || refreshToken == null) {
-    return;
+    await _logout();
+    return handler.next(options);
   }
 
   final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -36,13 +37,9 @@ final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, ha
         "http://103.200.20.59:3003/auth/refresh-token",
         data: {"refresh_token": refreshToken});
     if (res.statusCode != 200) {
-      // print('false with logout');
-      // logout
-      // await AuthRepository.logoutNoCredentials();
       await _logout();
       return;
     } else {
-      print('ágnsdjkg:${res.data}');
       //await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
       final String accessToken = res.data["access_token"];
       await _saveTokenData(res.data);
@@ -53,18 +50,14 @@ final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, ha
   }
   return handler.next(options);
 }, onResponse: (response, handler) {
-  print('responseee:${response.data}');
   return handler.next(response);
 }, onError: (error, handler) {
-  print('errorr:${error.response?.data}');
   return handler.next(error);
 });
 
 Future<void> _logout() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.clear();
-
-  // Implement navigation to login screen or other logout handling logic here.
 }
 
 Future<void> _saveTokenData(Map<String, dynamic> data) async {
