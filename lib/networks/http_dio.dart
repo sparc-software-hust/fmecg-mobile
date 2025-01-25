@@ -15,7 +15,8 @@ final dioConfigInterceptor = Dio()
   ..options.sendTimeout = const Duration(seconds: 15)
   ..interceptors.add(tokenInterceptor);
 
-final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, handler) async {
+final Interceptor tokenInterceptor =
+    InterceptorsWrapper(onRequest: (options, handler) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? accessToken = prefs.getString('access_token');
   final String? refreshToken = prefs.getString('refresh_token');
@@ -28,6 +29,7 @@ final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, ha
   final int expiryTimestamp = int.tryParse(accessExp) ?? 0;
 
   final bool isExpired = now > expiryTimestamp;
+  print("isExpired: $expiryTimestamp, $isExpired");
   if (isExpired) {
     final retryDio = Dio()
       ..options.baseUrl = options.baseUrl
@@ -52,7 +54,7 @@ final Interceptor tokenInterceptor = InterceptorsWrapper(onRequest: (options, ha
     options.headers['Authorization'] = "Bearer $accessToken";
   }
   return handler.next(options);
-}, onResponse: (response, handler) {
+}, onResponse: (response, handler) async {
   print('responseee:${response.data}');
   return handler.next(response);
 }, onError: (error, handler) {
