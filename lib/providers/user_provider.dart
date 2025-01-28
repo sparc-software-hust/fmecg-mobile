@@ -9,7 +9,7 @@ class UserProvider extends ChangeNotifier {
   bool isPatient = true;
 
   void setDataUser(Map data) async {
-    user = await User.fromJson(data);
+    user = User.fromJson(data);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('userInfo', jsonEncode(data));
     //print('gdgndfjkg:${user}');

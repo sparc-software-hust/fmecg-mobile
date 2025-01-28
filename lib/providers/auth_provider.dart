@@ -53,7 +53,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
-    print("${email}, ${password}");
     try {
       final url = Uri.parse("http://103.200.20.59:3003/auth/login");
       final response = await http.post(
@@ -77,7 +76,6 @@ class AuthProvider extends ChangeNotifier {
         print('responseData: ${responseData['role']}');
         _expiryDate =
             DateTime.fromMillisecondsSinceEpoch(responseData['expired_time']);
-        print("_accessToken: ${_accessToken}");
         final url = Uri.parse("http://103.200.20.59:3000/users/user-info");
         final responseInfoData = await http.get(url, headers: {
           "Authorization": "Bearer $_accessToken",
@@ -89,6 +87,7 @@ class AuthProvider extends ChangeNotifier {
           _userInfo = responseInfo;
         }
         _saveToPrefs();
+        Provider.of<UserProvider>(Utils.globalContext!, listen: false).setDataUser(_userInfo!);
         return;
       } else {
         print(

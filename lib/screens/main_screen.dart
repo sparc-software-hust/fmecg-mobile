@@ -234,9 +234,9 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: SalomonBottomBar(
         currentIndex: _currentIndex,
         onTap: (int index) {
-          setState(() {
+          // setState(() {
             _currentIndex = index;
-          });
+          // });
           _pageController.animateToPage(
             index,
             duration: const Duration(milliseconds: 300),
