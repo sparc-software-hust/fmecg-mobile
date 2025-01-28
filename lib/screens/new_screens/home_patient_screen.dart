@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fmecg_mobile/components/live_chart.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
 import 'package:fmecg_mobile/providers/user_provider.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_chart_test.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';
@@ -103,98 +104,56 @@ class NewHomeScreen extends StatelessWidget {
                           ),
                           child: const Row(
                             children: [
-                              Icon(Icons.local_fire_department,
-                                  color: Colors.blue),
+                              Icon(Icons.star, color: Colors.blue),
                               SizedBox(width: 8),
-                              Text('0-daily streak',
+                              Text('Daily Goal: Stay Healthy!',
                                   style: TextStyle(fontSize: 16)),
                             ],
                           ),
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: Colors.white.withOpacity(0.1),
-                                  width: 1.5),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.white.withOpacity(0.4),
-                                    blurRadius: 10,
-                                    spreadRadius: 1)
-                              ]),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.15),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: PhosphorIcon(
-                                      PhosphorIcons.regular.smiley,
-                                      color: Colors.white,
-                                      size: 30,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Stay Motivated!',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Chat with DIA',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Personal AI assistant',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Remember to drink water and take breaks.',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ],
                               ),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Plus',
-                                      style: TextStyle(color: Colors.blue),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Icon(
-                                      Icons.add,
-                                      color: Colors.blue,
-                                    ),
-                                  ],
-                                ),
-                              )
+                              const Icon(
+                                Icons.local_drink,
+                                color: Colors.blue,
+                                size: 40,
+                              ),
                             ],
                           ),
                         ),
@@ -202,7 +161,6 @@ class NewHomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
                 DefaultTabController(
                   length: 2,
@@ -242,13 +200,67 @@ class NewHomeScreen extends StatelessWidget {
   }
 
   Widget _buildMeasureHistory() {
-    return const Column(
-      children: [
-        SizedBox(
-          height: 20,
-        )
-      ],
+    return FutureBuilder<List<dynamic>>(
+      future: _fetchMeasurementHistory(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No measurement history found.'));
+        }
+
+        final records = snapshot.data!;
+        return ListView.builder(
+          itemCount: records.length,
+          itemBuilder: (context, index) {
+            final record = records[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: ListTile(
+                leading: const Icon(Icons.monitor_heart, color: Colors.blue),
+                title: Text('Doctor: ${record['doctor']}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Device: ${record['device_name']}'),
+                    Text(
+                      'Start: ${DateTime.fromMillisecondsSinceEpoch(record['start_time'] * 1000)}',
+                    ),
+                    Text(
+                      'End: ${DateTime.fromMillisecondsSinceEpoch(record['end_time'] * 1000)}',
+                    ),
+                  ],
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.download, color: Colors.blue),
+                  onPressed: () {
+                    _downloadRecord(record['data_rec_url']);
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
+  }
+
+  Future<List<dynamic>> _fetchMeasurementHistory() async {
+    final response = await dioConfigInterceptor.get('/records/data/patient-id');
+
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Failed to fetch measurement history');
+    }
+  }
+
+  void _downloadRecord(String filePath) {
+    print('Downloading file from: $filePath');
   }
 
   Widget _buildCaloriesSection() {

@@ -122,7 +122,7 @@ import 'package:fmecg_mobile/screens/history_screens/bluetooth_classic_screen.da
 import 'package:fmecg_mobile/screens/home_screen.dart';
 import 'package:fmecg_mobile/screens/login_screen/log_in_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/home_doctor_screen.dart';
-import 'package:fmecg_mobile/screens/new_screens/home_screen.dart';
+import 'package:fmecg_mobile/screens/new_screens/home_patient_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/schedule_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/search_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/setting_screen.dart';

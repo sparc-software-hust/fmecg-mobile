@@ -1,9 +1,50 @@
 import 'package:fmecg_mobile/constants/chat_user.dart';
 import 'package:fmecg_mobile/constants/color_constant.dart';
+import 'package:fmecg_mobile/networks/http_dio.dart';
 import 'package:fmecg_mobile/networks/socket_channel.dart';
 import 'package:fmecg_mobile/screens/chat_screens/chat_detail_screen.dart';
 import 'package:flutter/material.dart';
 
+class Doctor {
+  final String id;
+  final String accountId;
+  final String username;
+  final int gender;
+  final int birth;
+  final String phoneNumber;
+  final String? image;
+  final int statusId;
+  final String information;
+  final int roleId;
+
+  Doctor({
+    required this.id,
+    required this.accountId,
+    required this.username,
+    required this.gender,
+    required this.birth,
+    required this.phoneNumber,
+    this.image,
+    required this.statusId,
+    required this.information,
+    required this.roleId,
+  });
+
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    return Doctor(
+      id: json['id'] as String,
+      accountId: json['account_id'] as String,
+      username: json['username'] as String,
+      gender: json['gender'] as int,
+      birth: json['birth'] as int,
+      phoneNumber: json['phone_number'] as String,
+      image: json['image'] as String?,
+      statusId: json['status_id'] as int,
+      information: json['information'] as String,
+      roleId: json['role_id'] as int,
+    );
+  }
+}
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -13,14 +54,45 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final SocketChannel socketChannel = SocketChannel();
+  final TextEditingController searchController = TextEditingController();
+  List<Doctor> doctorList = [];
+  List<Doctor> filteredDoctors = [];
+
   @override
   void initState() {
     super.initState();
+    fetchDoctors(); 
+    searchController.addListener(() {
+      filterDoctors(searchController.text);
+    });
+
     socketChannel.on("new_message_conversation", (data, ref, joinRef) {
       print('dataaaa:$data');
     });
   }
+  Future<void> fetchDoctors() async {
+      try {
+        final response = await dioConfigInterceptor.get('/users/doctors');
+        setState(() {
+          doctorList = (response.data as List)
+              .map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>))
+              .toList();
+          filteredDoctors = List.from(doctorList);
+        });
+      } catch (e) {
+        print('Error fetching doctors: $e');
+      }
+    }
 
+ void filterDoctors(String query) {
+    final filtered = doctorList
+        .where((doctor) =>
+            doctor.username.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    setState(() {
+      filteredDoctors = filtered;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -83,7 +155,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           messageText: ChatUsers.chatUsers[index].message,
                           imageUrl: ChatUsers.chatUsers[index].imageUrl,
                           time: ChatUsers.chatUsers[index].time,
-                          isMessageRead: (index != 0) ? true : false);
+                          isMessageRead: (index != 0) ? true : false
+                          
+                          );
                     }),
               ),
             ],

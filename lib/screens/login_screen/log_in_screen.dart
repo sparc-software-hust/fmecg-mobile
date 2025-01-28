@@ -1,7 +1,7 @@
 import 'package:fmecg_mobile/screens/home_screen.dart';
 import 'package:fmecg_mobile/screens/login_screen/sign_up_screen.dart';
 import 'package:fmecg_mobile/screens/main_screen.dart';
-import 'package:fmecg_mobile/screens/new_screens/home_screen.dart';
+import 'package:fmecg_mobile/screens/new_screens/home_patient_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -83,7 +83,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             controller: _emailController,
                             decoration: InputDecoration(
                               hintStyle: const TextStyle(color: Colors.grey),
-                              label: const Text("Phone number or email"),
+                              label: const Text("Email"),
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15.0)),
                             ),

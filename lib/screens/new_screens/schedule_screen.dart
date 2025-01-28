@@ -80,6 +80,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     try {
       final schedules = await _fetchSchedule(id, role);
+      print("schedules: $schedules");
       setState(() {
         _schedules = schedules;
         print("schedule: ${_schedules[0]}");
@@ -92,7 +93,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Future<List<Schedule>> _fetchSchedule(String id, int role) async {
     try {
       String api = '';
-      if (role == 1)
+      if (role == 3)
         api = '/schedules/patient-id';
       else
         api = '/schedules/doctor-id';
@@ -373,6 +374,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                                   const PopupMenuItem(
                                       value: 2, child: Text("Delete")),
                                 ],
+                                onSelected: (value) {
+                                  if (value == 2) {
+                                    _showCancelReasonPopup(context, id);
+                                  }
+                                },
                                 child: const Icon(Icons.more_vert),
                               )
                             ],
@@ -413,6 +419,97 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCancelReasonPopup(BuildContext context, String scheduleId) {
+    final TextEditingController reasonController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reason Cancel'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Please provide a reason for canceling:',
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: reasonController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Enter your reason here...',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final reason = reasonController.text;
+
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Reason cannot be empty'),
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  final response = await dioConfigInterceptor.post(
+                    '/schedules/cancel',
+                    data: jsonEncode({
+                      'schedule_id': scheduleId,
+                      'reason': reason,
+                    }),
+                  );
+
+                  if (response.statusCode == 200 ||
+                      response.statusCode == 201) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Schedule canceled successfully'),
+                      ),
+                    );
+
+                    // Refresh the schedule list
+                    setState(() {
+                      _loadSchedules();
+                    });
+                  } else {
+                    throw Exception('Failed to cancel schedule');
+                  }
+                } catch (e) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
     );
   }
 
