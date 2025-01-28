@@ -53,7 +53,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
-    print("${email}, ${password}");
     try {
       final url = Uri.parse("http://103.200.20.59:3003/auth/login");
       final response = await http.post(
@@ -74,9 +73,9 @@ class AuthProvider extends ChangeNotifier {
         _accessToken = responseData['access_token'];
         _refreshToken = responseData['refresh_token'];
         _roleId = responseData['role'];
+        print('responseData: ${responseData['role']}');
         _expiryDate =
             DateTime.fromMillisecondsSinceEpoch(responseData['expired_time']);
-        print("_accessToken: ${_accessToken}");
         final url = Uri.parse("http://103.200.20.59:3000/users/user-info");
         final responseInfoData = await http.get(url, headers: {
           "Authorization": "Bearer $_accessToken",
@@ -88,6 +87,7 @@ class AuthProvider extends ChangeNotifier {
           _userInfo = responseInfo;
         }
         _saveToPrefs();
+        Provider.of<UserProvider>(Utils.globalContext!, listen: false).setDataUser(_userInfo!);
         return;
       } else {
         print(
@@ -106,7 +106,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString('access_token', _accessToken);
     await prefs.setString('refresh_token', _refreshToken);
     await prefs.setString('email', _email);
-    await prefs.setInt('role', _roleId);
+    await prefs.setInt('roleId', _roleId);
     await prefs.setString('expiryDate', _expiryDate?.toIso8601String() ?? '');
     await prefs.setString('userInfo', json.encode(_userInfo));
   }

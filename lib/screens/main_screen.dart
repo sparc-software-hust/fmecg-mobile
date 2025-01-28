@@ -115,11 +115,13 @@ import 'dart:async';
 
 import 'package:fmecg_mobile/constants/color_constant.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
+import 'package:fmecg_mobile/providers/auth_provider.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';
 import 'package:fmecg_mobile/screens/chat_screens/chat_screen.dart';
 import 'package:fmecg_mobile/screens/history_screens/bluetooth_classic_screen.dart';
 import 'package:fmecg_mobile/screens/home_screen.dart';
 import 'package:fmecg_mobile/screens/login_screen/log_in_screen.dart';
+import 'package:fmecg_mobile/screens/new_screens/home_doctor_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/home_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/schedule_screen.dart';
 import 'package:fmecg_mobile/screens/new_screens/search_screen.dart';
@@ -131,6 +133,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class MainScreen extends StatefulWidget {
@@ -146,14 +149,15 @@ class _MainScreenState extends State<MainScreen> {
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
   int _currentIndex = 0;
   final PageController _pageController = PageController();
-
-  static const List<Widget> _screens = <Widget>[
-    NewHomeScreen(),
-    HeartRateScreen(),
-    ScheduleScreen(),
-    ChatScreen(),
-    PersonalInfor(),
-  ];
+  late final List<Widget> _doctorScreens;
+  late final List<Widget> _patientScreens;
+  // static const List<Widget> _screens = <Widget>[
+  //   DoctorHomeScreen(),
+  //   HeartRateScreen(),
+  //   ScheduleScreen(),
+  //   ChatScreen(),
+  //   PersonalInfor(),
+  // ];
 
   @override
   void initState() {
@@ -162,6 +166,20 @@ class _MainScreenState extends State<MainScreen> {
 
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _doctorScreens = [
+      DoctorHomeScreen(),
+      ScheduleScreen(),
+      ChatScreen(),
+      PersonalInfor(),
+    ];
+
+    _patientScreens = [
+      NewHomeScreen(),
+      HeartRateScreen(),
+      ScheduleScreen(),
+      ChatScreen(),
+      PersonalInfor(),
+    ];
   }
 
   @override
@@ -198,6 +216,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final role = authProvider.roleId;
+    final screens = role == 2 ? _doctorScreens : _patientScreens;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: PageView(
@@ -207,44 +228,72 @@ class _MainScreenState extends State<MainScreen> {
             _currentIndex = index;
           });
         },
-        children: _screens,
+        children: screens,
         physics: const BouncingScrollPhysics(),
       ),
       bottomNavigationBar: SalomonBottomBar(
-          currentIndex: _currentIndex,
-          onTap: (int index) {
-            setState(() {
-              _currentIndex = index;
-            });
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          },
-          items: [
-            SalomonBottomBarItem(
-                icon: const Icon(Icons.home),
-                title: const Text('Home'),
-                selectedColor: Colors.blue),
-            SalomonBottomBarItem(
-                icon: const Icon(Icons.search),
-                title: const Text('Measurement'),
-                selectedColor: Colors.blue),
-            SalomonBottomBarItem(
-              icon: Icon(PhosphorIcons.regular.calendar),
-              title: const Text('Calendar'),
-              selectedColor: Colors.purple,
-            ),
-            SalomonBottomBarItem(
-                icon: Icon(PhosphorIcons.regular.chatCircle),
-                title: const Text('Chat'),
-                selectedColor: Colors.blue),
-            SalomonBottomBarItem(
-                icon: const Icon(Icons.settings),
-                title: const Text('Settings'),
-                selectedColor: Colors.blue),
-          ]),
+        currentIndex: _currentIndex,
+        onTap: (int index) {
+          // setState(() {
+            _currentIndex = index;
+          // });
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        items: role == 2
+            ? [
+                SalomonBottomBarItem(
+                  icon: const Icon(Icons.home),
+                  title: const Text('Home'),
+                  selectedColor: Colors.blue,
+                ),
+                SalomonBottomBarItem(
+                  icon: Icon(PhosphorIcons.regular.calendar),
+                  title: const Text('Schedule'),
+                  selectedColor: Colors.purple,
+                ),
+                SalomonBottomBarItem(
+                  icon: Icon(PhosphorIcons.regular.chatCircle),
+                  title: const Text('Chat'),
+                  selectedColor: Colors.blue,
+                ),
+                SalomonBottomBarItem(
+                  icon: const Icon(Icons.settings),
+                  title: const Text('Profile'),
+                  selectedColor: Colors.blue,
+                ),
+              ]
+            : [
+                SalomonBottomBarItem(
+                  icon: const Icon(Icons.home),
+                  title: const Text('Home'),
+                  selectedColor: Colors.blue,
+                ),
+                SalomonBottomBarItem(
+                  icon: const Icon(Icons.search),
+                  title: const Text('Measurement'),
+                  selectedColor: Colors.blue,
+                ),
+                SalomonBottomBarItem(
+                  icon: Icon(PhosphorIcons.regular.calendar),
+                  title: const Text('Calendar'),
+                  selectedColor: Colors.purple,
+                ),
+                SalomonBottomBarItem(
+                  icon: Icon(PhosphorIcons.regular.chatCircle),
+                  title: const Text('Chat'),
+                  selectedColor: Colors.blue,
+                ),
+                SalomonBottomBarItem(
+                  icon: const Icon(Icons.settings),
+                  title: const Text('Settings'),
+                  selectedColor: Colors.blue,
+                ),
+              ],
+      ),
     );
   }
 }
