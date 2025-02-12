@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';
 
 class HeartRateScreen extends StatelessWidget {
   const HeartRateScreen({Key? key}) : super(key: key);
@@ -12,16 +13,18 @@ class HeartRateScreen extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              PageRouteBuilder(
-                transitionDuration: const Duration(milliseconds: 800),
-                pageBuilder: (_, __, ___) => const MeasurementScreen(),
-                transitionsBuilder: (_, animation, __, child) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
-                },
-              ),
+              MaterialPageRoute(
+                        builder: (context) => const BleReactiveScreen())
+              // PageRouteBuilder(
+              //   transitionDuration: const Duration(milliseconds: 800),
+              //   pageBuilder: (_, __, ___) => const MeasurementScreen(),
+              //   transitionsBuilder: (_, animation, __, child) {
+              //     return FadeTransition(
+              //       opacity: animation,
+              //       child: child,
+              //     );
+              //   },
+              // ),
             );
           },
           child: Column(

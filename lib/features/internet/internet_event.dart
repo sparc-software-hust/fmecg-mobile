@@ -1,10 +1,10 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+// import 'package:connectivity_plus/connectivity_plus.dart';
 
-abstract class InternetEvent {}
+// abstract class InternetEvent {}
 
-class CheckInternetConnection extends InternetEvent {}
-class SetInternetConnection extends InternetEvent {
-  final ConnectivityResult type;
+// class CheckInternetConnection extends InternetEvent {}
+// class SetInternetConnection extends InternetEvent {
+//   final ConnectivityResult type;
 
-  SetInternetConnection({required this.type});
-}
+//   SetInternetConnection({required this.type});
+// }

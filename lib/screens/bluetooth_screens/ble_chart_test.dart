@@ -365,8 +365,8 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   subscribeCharacteristic() {
     subscribeStream = flutterReactiveBle.subscribeToCharacteristic(
       widget.bluetoothCharacteristic).listen((value) {
-        List<double> packetHandled = ECGDataController.handleDataRowFromBluetooth(value);
         print('value:$value');
+        List<double> packetHandled = ECGDataController.handleDataRowFromBluetooth(value);
         List dataChannelsToShowOnChart = ECGDataController.calculateDataPointToShow(packetHandled);
         // samples.add([0,	0, 0, 0, 0, 0, ...packetHandled]);
         // if (samples.length == 50000) {

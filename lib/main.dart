@@ -53,15 +53,15 @@ void main() async {
 
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
-    [
-      // Permission.location,
-      Permission.storage,
-      Permission.bluetooth,
-      Permission.bluetoothConnect,
-      Permission.bluetoothScan
-    ].request().then((status) {
+    // [
+    //   // Permission.location,
+    //   // Permission.storage,
+    //   Permission.bluetooth,
+    //   Permission.bluetoothConnect,
+    //   Permission.bluetoothScan
+    // ].request().then((status) {
+    // });
       runApp(const FmECGApp());
-    });
   } else {
     runApp(const FmECGApp());
   }
@@ -94,8 +94,8 @@ class FmECGAppState extends State<FmECGApp> {
       ],
       child: Consumer<AuthProvider>(builder: (ctx, auth, _) {
         Utils.setGlobalContext(ctx);
-        return const MaterialApp(
-          locale: Locale('en'),
+        return MaterialApp(
+          locale: const Locale('en'),
           debugShowCheckedModeBanner: false,
           // theme: (auth.theme == ThemeType.dark
           //         ? ThemeECG.darkTheme
@@ -107,14 +107,18 @@ class FmECGAppState extends State<FmECGApp> {
           //   },
           // )),
           // darkTheme: ThemeECG.darkTheme,
-          home: App(),
-          localizationsDelegates: [
+          home: const App(),
+          theme: ThemeData(
+            useMaterial3: true,
+            fontFamily: 'Inter'
+          ),
+          localizationsDelegates: const [
             S.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: [
+          supportedLocales: const [
             Locale('en'), // English
             Locale('vi'),
           ],
