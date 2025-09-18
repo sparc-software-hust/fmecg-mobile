@@ -37,6 +37,7 @@ class ECGDataController {
   }
 
   static List<int> getChannelsBytes(List<int> bytes) {
+    print('bytes length: ${bytes.length}');
     if (bytes.length < 12) return bytes.sublist(3, bytes.length); 
     if (bytes.length == 16) return bytes.sublist(3, 15);
     if (bytes.length == 24) return bytes.sublist(3, 21); //do bytes thu 21, 22 khong dung

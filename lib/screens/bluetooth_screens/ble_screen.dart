@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:fmecg_mobile/screens/bluetooth_screens/bluetooth_off_screen.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_scanning_screen.dart';
 import 'package:flutter/material.dart';
@@ -45,13 +46,10 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
   }
 
   Future<void> requestBluetoothPermission() async {
-    final status = await [
-      // Permission.location,
-      Permission.storage,
-      Permission.bluetooth,
-      Permission.bluetoothConnect,
-      Permission.bluetoothScan
-    ].request();
+    final List<Permission> permissionsPlatform = Platform.isAndroid
+        ? [Permission.bluetoothConnect, Permission.bluetoothScan]
+        : Platform.isIOS ? [Permission.bluetooth] : [];
+    final status = await permissionsPlatform.request();
     for (PermissionStatus value in status.values) { 
       if (value.isDenied) {
         //show popup 

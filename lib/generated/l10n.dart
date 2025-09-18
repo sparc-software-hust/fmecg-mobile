@@ -18,17 +18,20 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null,
-        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(
+      _current != null,
+      'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.',
+    );
     return _current!;
   }
 
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
+    final name =
+        (locale.countryCode?.isEmpty ?? false)
+            ? locale.languageCode
+            : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -41,8 +44,10 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null,
-        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(
+      instance != null,
+      'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?',
+    );
     return instance!;
   }
 
@@ -62,62 +67,32 @@ class S {
 
   /// `Login`
   String get login {
-    return Intl.message(
-      'Login',
-      name: 'login',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Login', name: 'login', desc: '', args: []);
   }
 
   /// `Sign up`
   String get signUp {
-    return Intl.message(
-      'Sign up',
-      name: 'signUp',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Sign up', name: 'signUp', desc: '', args: []);
   }
 
   /// `Home`
   String get home {
-    return Intl.message(
-      'Home',
-      name: 'home',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Home', name: 'home', desc: '', args: []);
   }
 
   /// `History`
   String get history {
-    return Intl.message(
-      'History',
-      name: 'history',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('History', name: 'history', desc: '', args: []);
   }
 
   /// `Chat`
   String get chat {
-    return Intl.message(
-      'Chat',
-      name: 'chat',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Chat', name: 'chat', desc: '', args: []);
   }
 
   /// `Profile`
   String get profile {
-    return Intl.message(
-      'Profile',
-      name: 'profile',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Profile', name: 'profile', desc: '', args: []);
   }
 
   /// `Welcome to my app,`
@@ -132,12 +107,7 @@ class S {
 
   /// `Heartbeat`
   String get heartbeat {
-    return Intl.message(
-      'Heartbeat',
-      name: 'heartbeat',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Heartbeat', name: 'heartbeat', desc: '', args: []);
   }
 
   /// `Blood pressure`
@@ -152,52 +122,27 @@ class S {
 
   /// `Systolic`
   String get systolic {
-    return Intl.message(
-      'Systolic',
-      name: 'systolic',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Systolic', name: 'systolic', desc: '', args: []);
   }
 
   /// `diastolic`
   String get diastolic {
-    return Intl.message(
-      'diastolic',
-      name: 'diastolic',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('diastolic', name: 'diastolic', desc: '', args: []);
   }
 
   /// `Variability`
   String get variability {
-    return Intl.message(
-      'Variability',
-      name: 'variability',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Variability', name: 'variability', desc: '', args: []);
   }
 
   /// `Status`
   String get status {
-    return Intl.message(
-      'Status',
-      name: 'status',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Status', name: 'status', desc: '', args: []);
   }
 
   /// `Or`
   String get or {
-    return Intl.message(
-      'Or',
-      name: 'or',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Or', name: 'or', desc: '', args: []);
   }
 
   /// `Extremely high`
@@ -222,22 +167,12 @@ class S {
 
   /// `Level`
   String get level {
-    return Intl.message(
-      'Level',
-      name: 'level',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Level', name: 'level', desc: '', args: []);
   }
 
   /// `Normal`
   String get normal {
-    return Intl.message(
-      'Normal',
-      name: 'normal',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Normal', name: 'normal', desc: '', args: []);
   }
 
   /// `Family member phone number`
@@ -262,32 +197,17 @@ class S {
 
   /// `Enter`
   String get enter {
-    return Intl.message(
-      'Enter',
-      name: 'enter',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Enter', name: 'enter', desc: '', args: []);
   }
 
   /// `Edit`
   String get edit {
-    return Intl.message(
-      'Edit',
-      name: 'edit',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Edit', name: 'edit', desc: '', args: []);
   }
 
   /// `Save`
   String get save {
-    return Intl.message(
-      'Save',
-      name: 'save',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Save', name: 'save', desc: '', args: []);
   }
 
   /// `Bluetooth is {action} now!`
@@ -302,42 +222,22 @@ class S {
 
   /// `Turn on`
   String get turnOn {
-    return Intl.message(
-      'Turn on',
-      name: 'turnOn',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Turn on', name: 'turnOn', desc: '', args: []);
   }
 
   /// `Find`
   String get find {
-    return Intl.message(
-      'Find',
-      name: 'find',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Find', name: 'find', desc: '', args: []);
   }
 
   /// `Stop`
   String get stop {
-    return Intl.message(
-      'Stop',
-      name: 'stop',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Stop', name: 'stop', desc: '', args: []);
   }
 
   /// `Disconnect`
   String get disconnect {
-    return Intl.message(
-      'Disconnect',
-      name: 'disconnect',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Disconnect', name: 'disconnect', desc: '', args: []);
   }
 
   /// `Available devices`
@@ -352,22 +252,12 @@ class S {
 
   /// `Connect`
   String get connect {
-    return Intl.message(
-      'Connect',
-      name: 'connect',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Connect', name: 'connect', desc: '', args: []);
   }
 
   /// `Connected`
   String get connected {
-    return Intl.message(
-      'Connected',
-      name: 'connected',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Connected', name: 'connected', desc: '', args: []);
   }
 
   /// `Scanning devices`
@@ -392,12 +282,7 @@ class S {
 
   /// `Measure`
   String get measure {
-    return Intl.message(
-      'Measure',
-      name: 'measure',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Measure', name: 'measure', desc: '', args: []);
   }
 
   /// `Let's connect your phone to hardware using Bluetooth`
@@ -462,12 +347,7 @@ class S {
 
   /// `Reset`
   String get reset {
-    return Intl.message(
-      'Reset',
-      name: 'reset',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Reset', name: 'reset', desc: '', args: []);
   }
 
   /// `Data is being processed by Python`
@@ -482,22 +362,12 @@ class S {
 
   /// `Result`
   String get result {
-    return Intl.message(
-      'Result',
-      name: 'result',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Result', name: 'result', desc: '', args: []);
   }
 
   /// `General`
   String get general {
-    return Intl.message(
-      'General',
-      name: 'general',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('General', name: 'general', desc: '', args: []);
   }
 
   /// `Save data to storage`
