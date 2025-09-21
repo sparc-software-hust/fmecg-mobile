@@ -7,8 +7,7 @@ class ScheduleAppointmentScreen extends StatelessWidget {
 
   void _openDoctorList(BuildContext context) {
     try {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const DoctorListScreen()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorListScreen()));
       print('Navigated to DoctorListScreen');
     } catch (e) {
       print('Error navigating: $e');
@@ -19,13 +18,11 @@ class ScheduleAppointmentScreen extends StatelessWidget {
     print('Date picker tapped');
     try {
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const DatePicker(
-                  doctorId: '',
-                  doctorName: '',
-                  doctorDescription: '',
-                  type: '2')));
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DatePicker(doctorId: '', doctorName: '', doctorDescription: '', type: '2'),
+        ),
+      );
       print('Navigated to DatePicker');
     } catch (e) {
       print('Error navigating: $e');
@@ -36,10 +33,7 @@ class ScheduleAppointmentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Schedule Appointments',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Schedule Appointments', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -51,28 +45,19 @@ class ScheduleAppointmentScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const Text(
-            'Doctor',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text('Doctor', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           InkWell(
             onTap: () => _openDoctorList(context),
             child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 2,
               child: const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundImage:
-                          AssetImage('assets/images/doctor_image.png'),
-                    ),
+                    CircleAvatar(radius: 40, backgroundImage: AssetImage('assets/images/doctor_image.png')),
                     SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -80,11 +65,7 @@ class ScheduleAppointmentScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Check Doctor List',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
                           ),
                           SizedBox(height: 8),
                           Text(
@@ -100,28 +81,19 @@ class ScheduleAppointmentScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Schedule',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text('Schedule', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           InkWell(
             onTap: () => _openDatePicker(context),
             child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 2,
               child: const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundImage:
-                          AssetImage('assets/images/schedule_image.png'),
-                    ),
+                    CircleAvatar(radius: 40, backgroundImage: AssetImage('assets/images/schedule_image.png')),
                     SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -129,11 +101,7 @@ class ScheduleAppointmentScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Select Date',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
                           ),
                           SizedBox(height: 8),
                           Text(

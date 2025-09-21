@@ -14,8 +14,7 @@ class Validators {
     }
 
     if (inputString != null) {
-      const pattern =
-          r'^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{8,}$';
+      const pattern = r'^(?=.*?[A-Z])(?=(.*[a-z]){1,})(?=(.*[\d]){1,})(?=(.*[\W]){1,})(?!.*\s).{8,}$';
 
       final regExp = RegExp(pattern);
 
@@ -25,7 +24,7 @@ class Validators {
     return isInputStringValid;
   }
 
-/// Checks if string is email.
+  /// Checks if string is email.
   static bool isValidEmail(String? inputString, {bool isRequired = false}) {
     bool isInputStringValid = false;
 

@@ -13,8 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum ThemeType { dark, light }
 
-UserProvider userProvider =
-    Provider.of<UserProvider>(Utils.globalContext!, listen: false);
+UserProvider userProvider = Provider.of<UserProvider>(Utils.globalContext!, listen: false);
 
 class AuthProvider extends ChangeNotifier {
   String _accessToken = "";
@@ -37,9 +36,7 @@ class AuthProvider extends ChangeNotifier {
   int get roleId => _roleId;
 
   String get token {
-    if (_expiryDate != null &&
-        _expiryDate!.isAfter(DateTime.now()) &&
-        _accessToken != "") {
+    if (_expiryDate != null && _expiryDate!.isAfter(DateTime.now()) && _accessToken != "") {
       return _accessToken;
     } else {
       return "";
@@ -57,13 +54,8 @@ class AuthProvider extends ChangeNotifier {
       final url = Uri.parse("http://103.200.20.59:3003/auth/login");
       final response = await http.post(
         url,
-        headers: {
-          "Content-type": "application/x-www-form-urlencoded",
-        },
-        body: {
-          "email": email,
-          "password": password,
-        },
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: {"email": email, "password": password},
       );
       //.timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
@@ -74,13 +66,12 @@ class AuthProvider extends ChangeNotifier {
         _refreshToken = responseData['refresh_token'];
         _roleId = responseData['role'];
         print('responseData: ${responseData['role']}');
-        _expiryDate =
-            DateTime.fromMillisecondsSinceEpoch(responseData['expired_time']);
+        _expiryDate = DateTime.fromMillisecondsSinceEpoch(responseData['expired_time']);
         final url = Uri.parse("http://103.200.20.59:3000/users/user-info");
-        final responseInfoData = await http.get(url, headers: {
-          "Authorization": "Bearer $_accessToken",
-          "Content-Type": "application/json",
-        });
+        final responseInfoData = await http.get(
+          url,
+          headers: {"Authorization": "Bearer $_accessToken", "Content-Type": "application/json"},
+        );
         if (responseInfoData.statusCode == 200) {
           final responseInfo = json.decode(responseInfoData.body);
           print("responseInfo: $responseInfo");
@@ -90,8 +81,7 @@ class AuthProvider extends ChangeNotifier {
         Provider.of<UserProvider>(Utils.globalContext!, listen: false).setDataUser(_userInfo!);
         return;
       } else {
-        print(
-            "Sai tài khoản mật khẩu: ${response.statusCode}, ${response.body}");
+        print("Sai tài khoản mật khẩu: ${response.statusCode}, ${response.body}");
       }
     } catch (e) {
       throw Exception('Failed to log in: $e');
@@ -207,8 +197,7 @@ class AuthProvider extends ChangeNotifier {
     String url = apiConstant.apiUrl + 'register';
     final bodyEncoded = jsonEncode({"email": email, "password": password});
     try {
-      final response = await http.post(Uri.parse(url),
-          headers: apiConstant.headers, body: bodyEncoded);
+      final response = await http.post(Uri.parse(url), headers: apiConstant.headers, body: bodyEncoded);
       final responseData = jsonDecode(response.body);
       if (responseData["status"] == "success") {
         // do something with data

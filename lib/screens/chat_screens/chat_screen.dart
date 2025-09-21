@@ -27,23 +27,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: ColorConstant.surface,
       appBar: AppBar(
-        flexibleSpace: GestureDetector(
-          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        ),
+        flexibleSpace: GestureDetector(onTap: () => FocusManager.instance.primaryFocus?.unfocus()),
         backgroundColor: ColorConstant.surface,
         toolbarHeight: size.height * 0.1,
-        title: const Text(
-          "Tin nhắn",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: const [
-          IconButton(
-              onPressed: null,
-              icon: Icon(
-                Icons.send,
-                color: Colors.blue,
-              ))
-        ],
+        title: const Text("Tin nhắn", style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: const [IconButton(onPressed: null, icon: Icon(Icons.send, color: Colors.blue))],
       ),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -56,35 +44,33 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: "Tìm bác sĩ...",
-                    hintStyle:
-                        const TextStyle(color: ColorConstant.onSurfaceVariant),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: ColorConstant.onSurfaceVariant,
-                      size: 20,
-                    ),
+                    hintStyle: const TextStyle(color: ColorConstant.onSurfaceVariant),
+                    prefixIcon: const Icon(Icons.search, color: ColorConstant.onSurfaceVariant, size: 20),
                     filled: true,
                     fillColor: ColorConstant.surfaceVariant,
                     contentPadding: const EdgeInsets.all(8),
                     enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.grey.shade100)),
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(color: Colors.grey.shade100),
+                    ),
                   ),
                 ),
               ),
               Expanded(
                 child: ListView.builder(
-                    itemCount: ChatUsers.chatUsers.length,
-                    padding: const EdgeInsets.only(top: 16),
-                    itemBuilder: (context, index) {
-                      return ConversationList(
-                          index: index,
-                          name: ChatUsers.chatUsers[index].name,
-                          messageText: ChatUsers.chatUsers[index].message,
-                          imageUrl: ChatUsers.chatUsers[index].imageUrl,
-                          time: ChatUsers.chatUsers[index].time,
-                          isMessageRead: (index != 0) ? true : false);
-                    }),
+                  itemCount: ChatUsers.chatUsers.length,
+                  padding: const EdgeInsets.only(top: 16),
+                  itemBuilder: (context, index) {
+                    return ConversationList(
+                      index: index,
+                      name: ChatUsers.chatUsers[index].name,
+                      messageText: ChatUsers.chatUsers[index].message,
+                      imageUrl: ChatUsers.chatUsers[index].imageUrl,
+                      time: ChatUsers.chatUsers[index].time,
+                      isMessageRead: (index != 0) ? true : false,
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -124,50 +110,32 @@ class _ConversationListState extends State<ConversationList> {
         setState(() {
           isRead = true;
         });
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-              ChatDetailScreen(indexSelect: widget.index)));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ChatDetailScreen(indexSelect: widget.index)));
       },
       child: Container(
-        padding:
-            const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 10),
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 10),
         child: Row(
           children: <Widget>[
             Expanded(
               child: Row(
                 children: <Widget>[
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(widget.imageUrl),
-                    maxRadius: 30,
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  CircleAvatar(backgroundImage: NetworkImage(widget.imageUrl), maxRadius: 30),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Container(
                       color: Colors.transparent,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(
-                            widget.name,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(
-                            height: 6,
-                          ),
+                          Text(widget.name, style: const TextStyle(fontSize: 16)),
+                          const SizedBox(height: 6),
                           Text(
                             widget.messageText,
                             style: TextStyle(
-                                fontSize: 13,
-                                color: !isRead
-                                    ? Colors.black
-                                    : Colors.grey.shade600,
-                                fontWeight: !isRead
-                                    ? FontWeight.bold
-                                    : FontWeight.normal),
+                              fontSize: 13,
+                              color: !isRead ? Colors.black : Colors.grey.shade600,
+                              fontWeight: !isRead ? FontWeight.bold : FontWeight.normal,
+                            ),
                           ),
                         ],
                       ),
@@ -178,9 +146,7 @@ class _ConversationListState extends State<ConversationList> {
             ),
             Text(
               widget.time,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: !isRead ? FontWeight.bold : FontWeight.normal),
+              style: TextStyle(fontSize: 12, fontWeight: !isRead ? FontWeight.bold : FontWeight.normal),
             ),
           ],
         ),

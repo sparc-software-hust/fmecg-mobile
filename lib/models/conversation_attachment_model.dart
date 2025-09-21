@@ -19,17 +19,16 @@ class ConversationAttachment {
     this.type = 2,
   });
 
-  factory ConversationAttachment.fromJson(Map<String, dynamic> json) =>
-    ConversationAttachment(
-      id: json["id"],
-      conversationId: json["conversation_id"],
-      messageId: json["message_id"],
-      contentUrl: json["content_url"],
-      fileName: json["file_name"],
-      size: json["size"],
-      thumbnailUrl: json["thumbnail_url"],
-      type: json["type"],
-    );
+  factory ConversationAttachment.fromJson(Map<String, dynamic> json) => ConversationAttachment(
+    id: json["id"],
+    conversationId: json["conversation_id"],
+    messageId: json["message_id"],
+    contentUrl: json["content_url"],
+    fileName: json["file_name"],
+    size: json["size"],
+    thumbnailUrl: json["thumbnail_url"],
+    type: json["type"],
+  );
 
   Map<String, dynamic> toJson() => {
     "id": id,

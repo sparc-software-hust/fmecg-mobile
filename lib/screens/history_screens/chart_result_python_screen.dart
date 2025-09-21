@@ -3,14 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class ChartsResultPythonScreen extends StatefulWidget {
-  const ChartsResultPythonScreen({
-    Key? key, required this.data,
-  }) : super(key: key);
+  const ChartsResultPythonScreen({Key? key, required this.data}) : super(key: key);
   final Map data;
 
   @override
-  State<ChartsResultPythonScreen> createState() =>
-      _ChartsResultPythonScreenState();
+  State<ChartsResultPythonScreen> createState() => _ChartsResultPythonScreenState();
 }
 
 class _ChartsResultPythonScreenState extends State<ChartsResultPythonScreen> {
@@ -66,22 +63,25 @@ class _ChartsResultPythonScreenState extends State<ChartsResultPythonScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
-            margin: const EdgeInsets.only(top: 20),
-            child: SingleChildScrollView(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _buildDefaultLineChart("SBP", sbpData),
-                const SizedBox(height: 15),
-                _buildDefaultLineChart("DBP", dbpData),
-                const SizedBox(height: 15),
-                _buildDefaultLineChart("SPO2", spo2Data),
-                const SizedBox(height: 15),
-                _buildDefaultLineChart("Heart rate", heartRateData),
-                const SizedBox(height: 15),
-              ],
-            ))));
+      body: Container(
+        margin: const EdgeInsets.only(top: 20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              _buildDefaultLineChart("SBP", sbpData),
+              const SizedBox(height: 15),
+              _buildDefaultLineChart("DBP", dbpData),
+              const SizedBox(height: 15),
+              _buildDefaultLineChart("SPO2", spo2Data),
+              const SizedBox(height: 15),
+              _buildDefaultLineChart("Heart rate", heartRateData),
+              const SizedBox(height: 15),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildDefaultLineChart(String name, List result) {
@@ -90,28 +90,27 @@ class _ChartsResultPythonScreenState extends State<ChartsResultPythonScreen> {
       margin: const EdgeInsets.only(left: 5, right: 10, top: 5),
       plotAreaBorderWidth: 0,
       enableAxisAnimation: true,
-      title: ChartTitle(
-          text: name, textStyle: const TextStyle(fontWeight: FontWeight.w600)),
-      legend:
-          Legend(isVisible: false, overflowMode: LegendItemOverflowMode.wrap),
+      title: ChartTitle(text: name, textStyle: const TextStyle(fontWeight: FontWeight.w600)),
+      legend: Legend(isVisible: false, overflowMode: LegendItemOverflowMode.wrap),
       primaryXAxis: NumericAxis(
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          // intervalType: DateTimeIntervalType.years,
-          // dateFormat: DateFormat.y(),
-          // name: 'Samples',
-          // rangePadding: ChartRangePadding.round,
-          title: AxisTitle(text: "Sample count"),
-          majorGridLines: const MajorGridLines(width: 0)),
+        edgeLabelPlacement: EdgeLabelPlacement.shift,
+        // intervalType: DateTimeIntervalType.years,
+        // dateFormat: DateFormat.y(),
+        // name: 'Samples',
+        // rangePadding: ChartRangePadding.round,
+        title: AxisTitle(text: "Sample count"),
+        majorGridLines: const MajorGridLines(width: 0),
+      ),
       primaryYAxis: NumericAxis(
-          title: AxisTitle(text: unit),
-          // minimum: 70,
-          // maximum: 110,
-          // interval: 10,
-          // rangePadding: ChartRangePadding.none,
-          // name: 'Price',
-          // axisLine: const AxisLine(width: 0),
-          majorTickLines:
-              const MajorTickLines(color: Colors.transparent, width: 0)),
+        title: AxisTitle(text: unit),
+        // minimum: 70,
+        // maximum: 110,
+        // interval: 10,
+        // rangePadding: ChartRangePadding.none,
+        // name: 'Price',
+        // axisLine: const AxisLine(width: 0),
+        majorTickLines: const MajorTickLines(color: Colors.transparent, width: 0),
+      ),
       series: _getDefaultLineSeries(result),
       // trackballBehavior: _trackballBehavior,
     );
@@ -121,10 +120,10 @@ class _ChartsResultPythonScreenState extends State<ChartsResultPythonScreen> {
   List<LineSeries> _getDefaultLineSeries(List chartData) {
     return [
       LineSeries(
-          dataSource: chartData,
-          xValueMapper: (pieceData, index) => index,
-          yValueMapper: (pieceData, _) => pieceData,
-          ),
+        dataSource: chartData,
+        xValueMapper: (pieceData, index) => index,
+        yValueMapper: (pieceData, _) => pieceData,
+      ),
     ];
   }
 

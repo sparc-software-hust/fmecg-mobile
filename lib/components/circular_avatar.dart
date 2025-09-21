@@ -11,9 +11,7 @@ class CircularAvatar extends StatelessWidget {
     return Container(
       width: radius * 2,
       height: radius * 2,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-      ),
+      decoration: const BoxDecoration(shape: BoxShape.circle),
       child: Image.asset(imageAsset),
     );
   }

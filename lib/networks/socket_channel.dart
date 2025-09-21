@@ -20,7 +20,8 @@ class SocketChannel {
   connect() async {
     try {
       // TODO: update lai token theo App
-      String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiODM1NzM0MjEtOTk0My00YTI1LTlmZTEtMDBmMDQ3N2FhYmE0IiwiZXhwIjoxNzEzNjcwMjczLCJpYXQiOjE3MTM2NjY2NzN9.iPjn54pGQgaYJXPZV5yDo5HbRZeT588UjzJ3B0AKGFs";
+      String token =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjoiODM1NzM0MjEtOTk0My00YTI1LTlmZTEtMDBmMDQ3N2FhYmE0IiwiZXhwIjoxNzEzNjcwMjczLCJpYXQiOjE3MTM2NjY2NzN9.iPjn54pGQgaYJXPZV5yDo5HbRZeT588UjzJ3B0AKGFs";
       final wsUrl = Uri.parse("${apiConstant.socketUrl}?token=$token");
       _socketChannel = IOWebSocketChannel.connect(wsUrl);
       await _socketChannel.ready;
@@ -35,14 +36,15 @@ class SocketChannel {
   }
 
   _listenConnection() {
-    _socketChannel.stream.listen((message) {
+    _socketChannel.stream.listen(
+      (message) {
         _handleEventSocket(message);
       },
       onDone: () {
         print("WebSocket is closed at ${DateTime.now()}");
         _handleDisconnect();
       },
-      onError: (err) => print("errsocket: $err")
+      onError: (err) => print("errsocket: $err"),
     );
   }
 
@@ -59,11 +61,7 @@ class SocketChannel {
         // tại sao cần List vì 1 event có thể gọi ở nhiều chỗ khác nhau
         List<EventHandler> handlers = _eventHandlers[eventType]!;
         for (var handler in handlers) {
-          handler(
-            decodedMessage['payload'],
-            decodedMessage['ref'],
-            decodedMessage['topic'],
-          );
+          handler(decodedMessage['payload'], decodedMessage['ref'], decodedMessage['topic']);
         }
       }
     } catch (e, t) {
@@ -101,10 +99,8 @@ class SocketChannel {
     final Map<String, dynamic> joinMessage = {
       'topic': topic,
       'event': 'phx_join',
-      'payload': {
-        "hi": "joined"
-      },
-      'ref': ''
+      'payload': {"hi": "joined"},
+      'ref': '',
     };
 
     _socketChannel.sink.add(json.encode(joinMessage));
@@ -132,12 +128,7 @@ class SocketChannel {
     String userId = "83573421-9943-4a25-9fe1-00f0477aaba4";
     String topic = "message:$userId";
 
-    final Map<String, dynamic> message = {
-      'topic': topic,
-      'event': event,
-      'payload': payload,
-      'ref': ''
-    };
+    final Map<String, dynamic> message = {'topic': topic, 'event': event, 'payload': payload, 'ref': ''};
     _socketChannel.sink.add(json.encode(message));
   }
 }

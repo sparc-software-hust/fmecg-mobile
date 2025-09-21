@@ -14,18 +14,15 @@ class Utils {
   }
 
   static getRandomString(int length) {
-    const _chars =
-        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     Random _rnd = Random();
-    return String.fromCharCodes(Iterable.generate(
-        length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+    return String.fromCharCodes(Iterable.generate(length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
   }
 
   static getRandomNumber(length) {
     const _chars = '1234567890';
     Random _rnd = Random();
-    return String.fromCharCodes(Iterable.generate(
-        length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+    return String.fromCharCodes(Iterable.generate(length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
   }
 
   static int getCurrentTimestamp() {
@@ -48,7 +45,7 @@ class Utils {
   }
 
   static Future<bool> requestManageStorage() async {
-    final PermissionStatus status = await Permission.manageExternalStorage.request();  
+    final PermissionStatus status = await Permission.manageExternalStorage.request();
     if (status == PermissionStatus.granted) {
       return true;
     } else {
@@ -73,7 +70,8 @@ class Utils {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    Text(warningContent,
+                    Text(
+                      warningContent,
                       style: TextStyle(
                         color: isDark ? const Color(0xFFF6F6F7) : const Color(0xFF101828),
                         fontSize: 16,
@@ -87,16 +85,18 @@ class Utils {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text("Close", 
-                        style: TextStyle(color: Color(0xff05AABD), fontSize: 14, fontWeight: FontWeight.w500),),
+                      child: const Text(
+                        "Close",
+                        style: TextStyle(color: Color(0xff05AABD), fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
                     ),
                   ],
-                )
-              )
+                ),
+              ),
             );
-          }
+          },
         );
-      }
+      },
     );
   }
 
@@ -116,44 +116,43 @@ class Utils {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(S.current.dataProcessingDes,
+                Text(
+                  S.current.dataProcessingDes,
                   style: const TextStyle(
                     color: colorTitle,
                     fontSize: 16,
                     fontFamily: 'Roboto',
                     fontWeight: FontWeight.w700,
-                  )
+                  ),
                 ),
                 const SizedBox(height: 20),
-                const CircularProgressIndicator(
-                  color: Color(0xff05AABD),
-                )
+                const CircularProgressIndicator(color: Color(0xff05AABD)),
               ],
-            )
-          )
+            ),
+          ),
         );
-      } 
+      },
     );
   }
 
   static Future<void> showDialogLoginRequirement(context) async {
     await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text("Có lỗi xảy ra"),
-            content:
-                const Text("Bạn phải đăng nhập để thực hiện chức năng này!"),
-            actions: [
-              TextButton(
-                child: const Text('Trở về'),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-        });
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Có lỗi xảy ra"),
+          content: const Text("Bạn phải đăng nhập để thực hiện chức năng này!"),
+          actions: [
+            TextButton(
+              child: const Text('Trở về'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

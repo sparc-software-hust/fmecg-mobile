@@ -20,7 +20,7 @@ class Message {
     required this.insertedAt,
     this.updatedAt,
     this.attachments = const [],
-    this.reactions = const []
+    this.reactions = const [],
   });
 
   factory Message.fromJson(Map<String, dynamic> json) => Message(
@@ -46,7 +46,6 @@ class Message {
     "inserted_at": insertedAt.toIso8601String(),
     "updated_at": updatedAt?.toIso8601String(),
     "attachments": attachments,
-    "reactions": reactions
+    "reactions": reactions,
   };
 }
-

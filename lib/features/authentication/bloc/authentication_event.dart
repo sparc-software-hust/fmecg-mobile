@@ -9,4 +9,3 @@ class LogInRequest extends AuthenticationEvent {
 class LogoutRequest extends AuthenticationEvent {}
 
 class CheckAutoLogin extends AuthenticationEvent {}
-

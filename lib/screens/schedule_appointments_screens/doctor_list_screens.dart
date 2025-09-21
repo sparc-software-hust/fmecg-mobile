@@ -69,17 +69,20 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     _futureDoctors = fetchDoctors();
   }
 
-  void _openDatePicker(BuildContext context, String doctorId, String doctorName,
-      String doctorDescription) {
+  void _openDatePicker(BuildContext context, String doctorId, String doctorName, String doctorDescription) {
     try {
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => DatePicker(
-                  doctorId: doctorId,
-                  doctorName: doctorName,
-                  doctorDescription: doctorDescription,
-                  type: '1')));
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => DatePicker(
+                doctorId: doctorId,
+                doctorName: doctorName,
+                doctorDescription: doctorDescription,
+                type: '1',
+              ),
+        ),
+      );
     } catch (e) {
       print('Error navigating: $e');
     }
@@ -91,9 +94,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
     try {
       final response = await dioConfigInterceptor.get('/users/doctors');
       setState(() {
-        _allDoctors = (response.data as List)
-            .map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>))
-            .toList();
+        _allDoctors = (response.data as List).map((doctor) => Doctor.fromJson(doctor as Map<String, dynamic>)).toList();
         _filteredDoctors = List.from(_allDoctors);
       });
       return _filteredDoctors;
@@ -106,10 +107,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   void _filterDoctors(String searchText) {
     setState(() {
       _searchText = searchText.toLowerCase();
-      _filteredDoctors = _allDoctors
-          .where(
-              (doctor) => doctor.username.toLowerCase().contains(_searchText))
-          .toList();
+      _filteredDoctors = _allDoctors.where((doctor) => doctor.username.toLowerCase().contains(_searchText)).toList();
     });
   }
 
@@ -117,10 +115,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Doctor List',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Doctor List', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -135,11 +130,10 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               decoration: InputDecoration(
-                  labelText: 'Search by name',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  )),
+                labelText: 'Search by name',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+              ),
               onChanged: (value) {
                 _filterDoctors(value);
               },
@@ -159,12 +153,9 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                     itemBuilder: (context, index) {
                       final doctor = _filteredDoctors[index];
                       return InkWell(
-                        onTap: () => _openDatePicker(context, doctor.id,
-                            doctor.username, doctor.information),
+                        onTap: () => _openDatePicker(context, doctor.id, doctor.username, doctor.information),
                         child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 2,
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
@@ -173,14 +164,12 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                               children: [
                                 const CircleAvatar(
                                   radius: 40,
-                                  backgroundImage: AssetImage(
-                                      'assets/images/doctor_image.png'),
+                                  backgroundImage: AssetImage('assets/images/doctor_image.png'),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         doctor.username,
@@ -193,8 +182,7 @@ class _DoctorListScreenState extends State<DoctorListScreen> {
                                       const SizedBox(height: 8),
                                       Text(
                                         doctor.information,
-                                        style: const TextStyle(
-                                            fontSize: 16, color: Colors.grey),
+                                        style: const TextStyle(fontSize: 16, color: Colors.grey),
                                       ),
                                     ],
                                   ),

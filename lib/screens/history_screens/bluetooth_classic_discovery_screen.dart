@@ -5,7 +5,6 @@
 // import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
 
-
 // class DiscoveryPage extends StatefulWidget {
 //   /// If true, discovery starts on page start, otherwise user must press action button.
 //   final bool start;

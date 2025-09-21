@@ -28,10 +28,7 @@ class S {
   static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
 
   static Future<S> load(Locale locale) {
-    final name =
-        (locale.countryCode?.isEmpty ?? false)
-            ? locale.languageCode
-            : locale.toString();
+    final name = (locale.countryCode?.isEmpty ?? false) ? locale.languageCode : locale.toString();
     final localeName = Intl.canonicalizedLocale(name);
     return initializeMessages(localeName).then((_) {
       Intl.defaultLocale = localeName;
@@ -57,12 +54,7 @@ class S {
 
   /// `Registration`
   String get registration {
-    return Intl.message(
-      'Registration',
-      name: 'registration',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Registration', name: 'registration', desc: '', args: []);
   }
 
   /// `Login`
@@ -97,12 +89,7 @@ class S {
 
   /// `Welcome to my app,`
   String get welcomeSentence {
-    return Intl.message(
-      'Welcome to my app,',
-      name: 'welcomeSentence',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Welcome to my app,', name: 'welcomeSentence', desc: '', args: []);
   }
 
   /// `Heartbeat`
@@ -112,12 +99,7 @@ class S {
 
   /// `Blood pressure`
   String get bloodPressure {
-    return Intl.message(
-      'Blood pressure',
-      name: 'bloodPressure',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Blood pressure', name: 'bloodPressure', desc: '', args: []);
   }
 
   /// `Systolic`
@@ -147,22 +129,12 @@ class S {
 
   /// `Extremely high`
   String get extremelyHigh {
-    return Intl.message(
-      'Extremely high',
-      name: 'extremelyHigh',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Extremely high', name: 'extremelyHigh', desc: '', args: []);
   }
 
   /// `Hypertension`
   String get hypertension {
-    return Intl.message(
-      'Hypertension',
-      name: 'hypertension',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Hypertension', name: 'hypertension', desc: '', args: []);
   }
 
   /// `Level`
@@ -177,22 +149,12 @@ class S {
 
   /// `Family member phone number`
   String get familyMemberPhone {
-    return Intl.message(
-      'Family member phone number',
-      name: 'familyMemberPhone',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Family member phone number', name: 'familyMemberPhone', desc: '', args: []);
   }
 
   /// `Phone number`
   String get phoneNumber {
-    return Intl.message(
-      'Phone number',
-      name: 'phoneNumber',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Phone number', name: 'phoneNumber', desc: '', args: []);
   }
 
   /// `Enter`
@@ -212,12 +174,7 @@ class S {
 
   /// `Bluetooth is {action} now!`
   String bluetoothStatusDes(Object action) {
-    return Intl.message(
-      'Bluetooth is $action now!',
-      name: 'bluetoothStatusDes',
-      desc: '',
-      args: [action],
-    );
+    return Intl.message('Bluetooth is $action now!', name: 'bluetoothStatusDes', desc: '', args: [action]);
   }
 
   /// `Turn on`
@@ -242,12 +199,7 @@ class S {
 
   /// `Available devices`
   String get availableDevices {
-    return Intl.message(
-      'Available devices',
-      name: 'availableDevices',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Available devices', name: 'availableDevices', desc: '', args: []);
   }
 
   /// `Connect`
@@ -262,22 +214,12 @@ class S {
 
   /// `Scanning devices`
   String get scanningDevices {
-    return Intl.message(
-      'Scanning devices',
-      name: 'scanningDevices',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Scanning devices', name: 'scanningDevices', desc: '', args: []);
   }
 
   /// `All devices found!`
   String get devicesFoundDes {
-    return Intl.message(
-      'All devices found!',
-      name: 'devicesFoundDes',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('All devices found!', name: 'devicesFoundDes', desc: '', args: []);
   }
 
   /// `Measure`
@@ -297,52 +239,27 @@ class S {
 
   /// `Notification`
   String get notification {
-    return Intl.message(
-      'Notification',
-      name: 'notification',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Notification', name: 'notification', desc: '', args: []);
   }
 
   /// `Something went wrong`
   String get somethingWentWrong {
-    return Intl.message(
-      'Something went wrong',
-      name: 'somethingWentWrong',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Something went wrong', name: 'somethingWentWrong', desc: '', args: []);
   }
 
   /// `Measurement Page`
   String get measurementPage {
-    return Intl.message(
-      'Measurement Page',
-      name: 'measurementPage',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Measurement Page', name: 'measurementPage', desc: '', args: []);
   }
 
   /// `Your blood pressure chart`
   String get yourBloodPressureChart {
-    return Intl.message(
-      'Your blood pressure chart',
-      name: 'yourBloodPressureChart',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Your blood pressure chart', name: 'yourBloodPressureChart', desc: '', args: []);
   }
 
   /// `Save and calculate`
   String get saveAndCalculate {
-    return Intl.message(
-      'Save and calculate',
-      name: 'saveAndCalculate',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Save and calculate', name: 'saveAndCalculate', desc: '', args: []);
   }
 
   /// `Reset`
@@ -352,12 +269,7 @@ class S {
 
   /// `Data is being processed by Python`
   String get dataProcessingDes {
-    return Intl.message(
-      'Data is being processed by Python',
-      name: 'dataProcessingDes',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Data is being processed by Python', name: 'dataProcessingDes', desc: '', args: []);
   }
 
   /// `Result`
@@ -372,22 +284,12 @@ class S {
 
   /// `Save data to storage`
   String get saveDataToStorage {
-    return Intl.message(
-      'Save data to storage',
-      name: 'saveDataToStorage',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Save data to storage', name: 'saveDataToStorage', desc: '', args: []);
   }
 
   /// `Data processed`
   String get dataProcessed {
-    return Intl.message(
-      'Data processed',
-      name: 'dataProcessed',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('Data processed', name: 'dataProcessed', desc: '', args: []);
   }
 }
 
@@ -395,10 +297,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   const AppLocalizationDelegate();
 
   List<Locale> get supportedLocales {
-    return const <Locale>[
-      Locale.fromSubtags(languageCode: 'en'),
-      Locale.fromSubtags(languageCode: 'vi'),
-    ];
+    return const <Locale>[Locale.fromSubtags(languageCode: 'en'), Locale.fromSubtags(languageCode: 'vi')];
   }
 
   @override

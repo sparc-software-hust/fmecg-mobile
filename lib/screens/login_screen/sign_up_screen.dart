@@ -16,8 +16,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool isValidEmail(String emailTyped) {
     // regular expression: example@email.vn (not begin with .): test@vais.vn
-    final emailRegExp =
-        RegExp(r"^[a-zA-Z0-9][a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    final emailRegExp = RegExp(r"^[a-zA-Z0-9][a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
     return emailRegExp.hasMatch(emailTyped);
   }
 
@@ -32,40 +31,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-          leading: Container(
-        margin: const EdgeInsets.only(top: 8.0, left: 15.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18.0),
-          color: Colors.grey.shade200,
+        leading: Container(
+          margin: const EdgeInsets.only(top: 8.0, left: 15.0),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(18.0), color: Colors.grey.shade200),
+          child: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20), onPressed: () {}),
         ),
-        child: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.black,
-            size: 20,
-          ),
-          onPressed: () {},
-        ),
-      )),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey.shade200,
-              ),
-              margin: EdgeInsets.only(
-                  top: size.height * 0.03, left: size.width * 0.05),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.grey.shade200),
+              margin: EdgeInsets.only(top: size.height * 0.03, left: size.width * 0.05),
               padding: const EdgeInsets.all(20.0),
-              child: ClipOval(
-                  child: Icon(Icons.person_pin,
-                      color: Colors.pink.shade300, size: 30)),
+              child: ClipOval(child: Icon(Icons.person_pin, color: Colors.pink.shade300, size: 30)),
             ),
             Padding(
-              padding: EdgeInsets.only(
-                  left: size.width * 0.05, top: size.height * 0.03),
+              padding: EdgeInsets.only(left: size.width * 0.05, top: size.height * 0.03),
               child: const Text(
                 "Registration",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
@@ -73,8 +56,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(
-                  left: size.width * 0.05, top: size.height * 0.01),
+              padding: EdgeInsets.only(left: size.width * 0.05, top: size.height * 0.01),
               child: const Text(
                 "Please enter your email and mobile number, then we will send OTP to verify",
                 style: TextStyle(fontSize: 15),
@@ -91,26 +73,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       right: size.width * 0.05,
                     ),
                     child: TextFormField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(
-                          label: const Text(
-                            "Phone number",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15.0)),
-                        ),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (!isValidPhoneNumber(value!)) {
-                            return "Enter valid phone number: 11 digits";
-                          }
-                          if (value.isEmpty) {
-                            return "Phone number can't left empty";
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction),
+                      controller: _phoneController,
+                      decoration: InputDecoration(
+                        label: const Text("Phone number", style: TextStyle(fontWeight: FontWeight.bold)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (!isValidPhoneNumber(value!)) {
+                          return "Enter valid phone number: 11 digits";
+                        }
+                        if (value.isEmpty) {
+                          return "Phone number can't left empty";
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsets.only(
@@ -119,27 +98,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       right: size.width * 0.05,
                     ),
                     child: TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          hintStyle: const TextStyle(color: Colors.grey),
-                          label: const Text(
-                            "Email",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15.0)),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (!isValidEmail(value!)) {
-                            return "Enter valid email: example@email.com";
-                          }
-                          if (value.isEmpty) {
-                            return "Email can't left empty";
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction),
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        label: const Text("Email", style: TextStyle(fontWeight: FontWeight.bold)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (!isValidEmail(value!)) {
+                          return "Enter valid email: example@email.com";
+                        }
+                        if (value.isEmpty) {
+                          return "Email can't left empty";
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                    ),
                   ),
                   Padding(
                     padding: EdgeInsets.only(
@@ -148,24 +124,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       right: size.width * 0.05,
                     ),
                     child: TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          hintStyle: const TextStyle(color: Colors.grey),
-                          label: const Text(
-                            "Full name",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15.0)),
-                        ),
-                        keyboardType: TextInputType.name,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return "Full name can't left empty";
-                          }
-                          return null;
-                        },
-                        autovalidateMode: AutovalidateMode.onUserInteraction),
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        label: const Text("Full name", style: TextStyle(fontWeight: FontWeight.bold)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+                      ),
+                      keyboardType: TextInputType.name,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "Full name can't left empty";
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                    ),
                   ),
                 ],
               ),
@@ -177,48 +150,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: ElevatedButton(
                   onPressed: null,
                   style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStatePropertyAll<Color>(Colors.blue.shade700),
+                    backgroundColor: MaterialStatePropertyAll<Color>(Colors.blue.shade700),
                     padding: MaterialStatePropertyAll<EdgeInsetsGeometry>(
-                      EdgeInsets.symmetric(
-                        horizontal: size.width * 0.39,
-                      ),
+                      EdgeInsets.symmetric(horizontal: size.width * 0.39),
                     ),
                   ),
-                  child: const Text(
-                    "Proceed",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: const Text("Proceed", style: TextStyle(color: Colors.white)),
                 ),
               ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  "Already have account?",
-                  style: TextStyle(color: Colors.grey),
-                ),
+                const Text("Already have account?", style: TextStyle(color: Colors.grey)),
                 TextButton(
-                    onPressed: () {
-                      // Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //         builder: (BuildContext context) =>
-                      //             const LoginScreen()));
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(color: Colors.blue),
-                    ))
+                  onPressed: () {
+                    // Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //         builder: (BuildContext context) =>
+                    //             const LoginScreen()));
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Login", style: TextStyle(color: Colors.blue)),
+                ),
               ],
             ),
             Center(
               child: Padding(
-                  padding: EdgeInsets.only(
-                      top: size.height * 0.02, bottom: size.height * 0.02),
-                  child: const Text("Or continue with")),
+                padding: EdgeInsets.only(top: size.height * 0.02, bottom: size.height * 0.02),
+                child: const Text("Or continue with"),
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -226,47 +188,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ElevatedButton(
                   onPressed: null,
                   child: SizedBox(
-                      height: size.height * 0.06,
-                      width: size.width * 0.3,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            "assets/logo/google.png",
-                            height: size.height * 0.03,
-                          ),
-                          const Text(
-                            "  Google",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ],
-                      )),
+                    height: size.height * 0.06,
+                    width: size.width * 0.3,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset("assets/logo/google.png", height: size.height * 0.03),
+                        const Text("  Google", style: TextStyle(color: Colors.black)),
+                      ],
+                    ),
+                  ),
                 ),
-                SizedBox(
-                  height: size.height * 0.06,
-                  width: size.width * 0.05,
-                ),
+                SizedBox(height: size.height * 0.06, width: size.width * 0.05),
                 ElevatedButton(
                   onPressed: null,
                   child: SizedBox(
-                      height: size.height * 0.06,
-                      width: size.width * 0.3,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            "assets/logo/facebook.png",
-                            height: size.height * 0.03,
-                          ),
-                          const Text(
-                            "  Facebook",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ],
-                      )),
+                    height: size.height * 0.06,
+                    width: size.width * 0.3,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset("assets/logo/facebook.png", height: size.height * 0.03),
+                        const Text("  Facebook", style: TextStyle(color: Colors.black)),
+                      ],
+                    ),
+                  ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

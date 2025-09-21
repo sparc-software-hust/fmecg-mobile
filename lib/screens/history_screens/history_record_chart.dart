@@ -7,18 +7,14 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class HistoryRecordChart extends StatefulWidget {
-  const HistoryRecordChart({
-    Key? key, 
-    required this.recordId
-  }) : super(key: key);
+  const HistoryRecordChart({Key? key, required this.recordId}) : super(key: key);
   final int recordId;
 
   @override
   State<HistoryRecordChart> createState() => _HistoryRecordChartState();
-  
 }
 
-class _HistoryRecordChartState extends State<HistoryRecordChart>  {
+class _HistoryRecordChartState extends State<HistoryRecordChart> {
   List? chartData;
   // TrackballBehavior? _trackballBehavior;
 
@@ -53,10 +49,10 @@ class _HistoryRecordChartState extends State<HistoryRecordChart>  {
       body: Container(
         margin: const EdgeInsets.all(15),
         child: Center(
-          child: chartData != null && chartData!.isNotEmpty ?
-            _buildDefaultLineChart() : const CircularProgressIndicator()
-          )
-      )
+          child:
+              chartData != null && chartData!.isNotEmpty ? _buildDefaultLineChart() : const CircularProgressIndicator(),
+        ),
+      ),
     );
   }
 
@@ -66,24 +62,24 @@ class _HistoryRecordChartState extends State<HistoryRecordChart>  {
       plotAreaBorderWidth: 0,
       enableAxisAnimation: true,
       title: ChartTitle(text: 'Record ${widget.recordId}'),
-      legend: Legend(
-          isVisible: true,
-          overflowMode: LegendItemOverflowMode.wrap),
+      legend: Legend(isVisible: true, overflowMode: LegendItemOverflowMode.wrap),
       primaryXAxis: NumericAxis(
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          // intervalType: DateTimeIntervalType.years,
-          // dateFormat: DateFormat.y(),
-          name: 'Years',
-          rangePadding: ChartRangePadding.round,
-          majorGridLines: const MajorGridLines(width: 0)),
+        edgeLabelPlacement: EdgeLabelPlacement.shift,
+        // intervalType: DateTimeIntervalType.years,
+        // dateFormat: DateFormat.y(),
+        name: 'Years',
+        rangePadding: ChartRangePadding.round,
+        majorGridLines: const MajorGridLines(width: 0),
+      ),
       primaryYAxis: NumericAxis(
-          // minimum: 70,
-          // maximum: 110,
-          // interval: 10,
-          // rangePadding: ChartRangePadding.none,
-          // name: 'Price',
-          axisLine: const AxisLine(width: 0),
-          majorTickLines: const MajorTickLines(color: Colors.transparent)),
+        // minimum: 70,
+        // maximum: 110,
+        // interval: 10,
+        // rangePadding: ChartRangePadding.none,
+        // name: 'Price',
+        axisLine: const AxisLine(width: 0),
+        majorTickLines: const MajorTickLines(color: Colors.transparent),
+      ),
       series: _getDefaultLineSeries(),
       // trackballBehavior: _trackballBehavior,
     );
@@ -96,13 +92,13 @@ class _HistoryRecordChartState extends State<HistoryRecordChart>  {
         dataSource: chartData!,
         xValueMapper: (pieceData, _) => pieceData["timestamp"],
         yValueMapper: (pieceData, _) => double.parse(pieceData["ch1"] ?? "0"),
-        name: 'Channel 01'
+        name: 'Channel 01',
       ),
       LineSeries(
         dataSource: chartData!,
         xValueMapper: (pieceData, _) => pieceData["timestamp"],
         yValueMapper: (pieceData, _) => double.parse(pieceData["ch2"] ?? "0"),
-        name: 'Channel 02'
+        name: 'Channel 02',
       ),
     ];
   }

@@ -77,7 +77,6 @@
 //             MaterialPageRoute(
 //                 builder: (context) => Material(child: PickFiles(txtPath: fileSum.path))));
 
-
 //       });
 //     }).catchError((error) {
 //       print('Cannot connect, exception occured');

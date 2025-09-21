@@ -1,4 +1,3 @@
-
 import 'package:fmecg_mobile/constants/api_constant.dart';
 import 'package:fmecg_mobile/providers/ecg_provider.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
@@ -15,14 +14,11 @@ class ECGRecordController {
 
     final String filePath = fileUploadInformation["file_path"];
     final MultipartFile fileData = await MultipartFile.fromFile(
-      filePath, 
+      filePath,
       filename: filePath.split('/').last,
-      contentType: MediaType('text', 'csv')
+      contentType: MediaType('text', 'csv'),
     );
-    FormData fileToUpload = FormData.fromMap({
-      ...fileUploadInformation,
-      "file": fileData,
-    });
+    FormData fileToUpload = FormData.fromMap({...fileUploadInformation, "file": fileData});
     try {
       final response = await Dio().post(url, data: fileToUpload);
     } catch (e, t) {

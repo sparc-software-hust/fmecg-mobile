@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class SubmitButton extends StatefulWidget {
-  const SubmitButton({Key? key, required this.onTap, required this.text, this.isLoading = false, this.isDisable = false}) : super(key: key);
+  const SubmitButton({
+    Key? key,
+    required this.onTap,
+    required this.text,
+    this.isLoading = false,
+    this.isDisable = false,
+  }) : super(key: key);
   final Function() onTap;
   final String text;
   final bool isLoading;
@@ -24,26 +30,19 @@ class _SubmitButtonState extends State<SubmitButton> {
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(12.0)),
           boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              offset: const Offset(0, 3),
-              blurRadius: 8,
-            )
+            BoxShadow(color: Colors.black.withOpacity(0.15), offset: const Offset(0, 3), blurRadius: 8),
           ],
-          color: widget.isDisable ? Colors.grey[500] : ColorConstant.primary
+          color: widget.isDisable ? Colors.grey[500] : ColorConstant.primary,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            widget.isLoading ? (
-              const SpinKitFadingCircle(
-                color: Colors.white,
-                size: 19,
-              )
-            ) : Text(
-              widget.text,
-              style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500),
-            ),
+            widget.isLoading
+                ? (const SpinKitFadingCircle(color: Colors.white, size: 19))
+                : Text(
+                  widget.text,
+                  style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500),
+                ),
           ],
         ),
       ),

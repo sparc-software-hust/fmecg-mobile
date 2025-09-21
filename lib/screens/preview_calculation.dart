@@ -17,23 +17,18 @@ class _PreviewCalculationState extends State<PreviewCalculation> {
   Widget build(BuildContext context) {
     double position = calculateIndicatorPosition(sbpNumber, dbpNumber);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Kết quả đo"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Kết quả đo"), centerTitle: true),
       body: Container(
         padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView( // Sử dụng SingleChildScrollView để có thể cuộn nếu nội dung quá dài
+        child: SingleChildScrollView(
+          // Sử dụng SingleChildScrollView để có thể cuộn nếu nội dung quá dài
           child: Column(
             children: [
               Container(
                 alignment: Alignment.topLeft,
                 child: Text(
                   "Tổng quan",
-                  style: TextStyle(
-                      color: ColorConstant.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22),
+                  style: TextStyle(color: ColorConstant.primary, fontWeight: FontWeight.bold, fontSize: 22),
                 ),
               ),
               const SizedBox(height: 10),
@@ -42,16 +37,40 @@ class _PreviewCalculationState extends State<PreviewCalculation> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  NumberCard(number: sbpNumber, text: "Tâm thu", subText: "mmHg", color1: Colors.red, percentage: sbpNumber/250),
-                  NumberCard(number: dbpNumber, text: "Tâm trương", subText: "mmHg", color1: Colors.blue, percentage: dbpNumber/200),
+                  NumberCard(
+                    number: sbpNumber,
+                    text: "Tâm thu",
+                    subText: "mmHg",
+                    color1: Colors.red,
+                    percentage: sbpNumber / 250,
+                  ),
+                  NumberCard(
+                    number: dbpNumber,
+                    text: "Tâm trương",
+                    subText: "mmHg",
+                    color1: Colors.blue,
+                    percentage: dbpNumber / 200,
+                  ),
                 ],
               ),
               const SizedBox(height: 40), // Khoảng cách giữa hai hàng
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  NumberCard(number: heartRateNumber, text: "Nhịp tim", subText: "bpm", color1: Colors.green, percentage: heartRateNumber/150),
-                  NumberCard(number: deviationNumber, text: "Biến thiên", subText: "bpm", color1: Colors.purple, percentage: deviationNumber/150),
+                  NumberCard(
+                    number: heartRateNumber,
+                    text: "Nhịp tim",
+                    subText: "bpm",
+                    color1: Colors.green,
+                    percentage: heartRateNumber / 150,
+                  ),
+                  NumberCard(
+                    number: deviationNumber,
+                    text: "Biến thiên",
+                    subText: "bpm",
+                    color1: Colors.purple,
+                    percentage: deviationNumber / 150,
+                  ),
                 ],
               ),
               const SizedBox(height: 10), // Thêm một khoảng cách nếu cần
@@ -72,7 +91,8 @@ class NumberCard extends StatelessWidget {
   final Color color1; // Màu sắc cho phần đã đạt
   final double percentage; // Phần trăm tiến độ, ví dụ: 170/200
 
-  const NumberCard({super.key, 
+  const NumberCard({
+    super.key,
     required this.number,
     required this.text,
     required this.subText,
@@ -95,39 +115,18 @@ class NumberCard extends StatelessWidget {
         child: Container(
           width: 110.0,
           height: 110.0,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-          ),
+          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  text,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10.0,
-                    color: Colors.black,
-                  ),
-                ),
+                Text(text, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10.0, color: Colors.black)),
                 const SizedBox(height: 10),
                 Text(
                   '$number',
-                  style: const TextStyle(
-                    fontSize: 19.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontSize: 19.0, color: Colors.black, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  subText,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10.0,
-                    color: Colors.black,
-                  ),
-                ),
+                Text(subText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10.0, color: Colors.black)),
               ],
             ),
           ),
@@ -142,24 +141,22 @@ class CircleProgressPainter extends CustomPainter {
   final Color progressColor;
   final Color backgroundColor;
 
-  CircleProgressPainter({
-    required this.progressAngle,
-    required this.progressColor,
-    required this.backgroundColor,
-  });
+  CircleProgressPainter({required this.progressAngle, required this.progressColor, required this.backgroundColor});
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint backgroundPaint = Paint()
-      ..color = backgroundColor
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke;
+    Paint backgroundPaint =
+        Paint()
+          ..color = backgroundColor
+          ..strokeWidth = 10
+          ..style = PaintingStyle.stroke;
 
-    Paint progressPaint = Paint()
-      ..color = progressColor
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    Paint progressPaint =
+        Paint()
+          ..color = progressColor
+          ..strokeWidth = 10
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
 
     Offset center = Offset(size.width / 2, size.height / 2);
     double radius = size.width / 2;
@@ -195,22 +192,16 @@ class BloodPressureIndicatorPainter extends CustomPainter {
     // Vẽ thanh ngang đa màu
     for (int i = 0; i < colors.length; i++) {
       Paint paint = Paint()..color = colors[i];
-      canvas.drawRect(
-        Rect.fromLTWH(i * sectionWidth, 0, sectionWidth, size.height),
-        paint,
-      );
+      canvas.drawRect(Rect.fromLTWH(i * sectionWidth, 0, sectionWidth, size.height), paint);
     }
 
     // Vẽ vạch chỉ thị
     double indicatorX = indicatorPosition * size.width;
-    Paint indicatorPaint = Paint()
-      ..color = Colors.black54
-      ..strokeWidth = 3;
-    canvas.drawLine(
-      Offset(indicatorX, 0),
-      Offset(indicatorX, size.height),
-      indicatorPaint,
-    );
+    Paint indicatorPaint =
+        Paint()
+          ..color = Colors.black54
+          ..strokeWidth = 3;
+    canvas.drawLine(Offset(indicatorX, 0), Offset(indicatorX, size.height), indicatorPaint);
   }
 
   @override
@@ -234,12 +225,13 @@ class BloodPressureIndicator extends StatelessWidget {
         SizedBox(
           width: double.infinity, // Full width
           height: 20, // Increased height to accommodate the icon
-          child: CustomPaint(
-            painter: BloodPressureIndicatorPainter(indicatorPosition: indicatorPosition),
-          ),
+          child: CustomPaint(painter: BloodPressureIndicatorPainter(indicatorPosition: indicatorPosition)),
         ),
         Transform.translate(
-          offset: Offset(screenWidth * indicatorPosition - 45 * (indicatorPosition + 0.2), 25), // Giả sử icon có kích thước là 24x24 pixels
+          offset: Offset(
+            screenWidth * indicatorPosition - 45 * (indicatorPosition + 0.2),
+            25,
+          ), // Giả sử icon có kích thước là 24x24 pixels
           child: const Icon(
             Icons.favorite,
             color: Colors.pink,
@@ -280,31 +272,41 @@ class BloodPressureLegendTable extends StatelessWidget {
         DataColumn(label: Text('PPG/PCG')),
       ],
       rows: [
-        DataRow(cells: [
-          const DataCell(CircleAvatar(backgroundColor: Colors.purple)),
-          DataCell(Text('Huyết Áp Cực Kỳ Cao', style: textStyle)),
-          DataCell(Text('> 180 hoặc > 120', style: textStyle)),
-        ]),
-        DataRow(cells: [
-          const DataCell(CircleAvatar(backgroundColor: Colors.redAccent)),
-          DataCell(Text('Tăng Huyết Áp Độ 2', style: textStyle)),
-          DataCell(Text('>= 140 hoặc >= 90', style: textStyle)),
-        ]),
-        DataRow(cells: [
-          const DataCell(CircleAvatar(backgroundColor: Colors.orange)),
-          DataCell(Text('Tăng Huyết Áp Độ 1', style: textStyle)),
-          DataCell(Text('>= 130 hoặc >= 80', style: textStyle)),
-        ]),
-        DataRow(cells: [
-          const DataCell(CircleAvatar(backgroundColor: Colors.yellow)),
-          DataCell(Text('Huyết Áp Cao', style: textStyle)),
-          DataCell(Text('>= 120', style: textStyle)),
-        ]),
-        DataRow(cells: [
-          const DataCell(CircleAvatar(backgroundColor: Colors.green)),
-          DataCell(Text('Bình Thường', style: textStyle)),
-          DataCell(Text('< 120', style: textStyle)),
-        ]),
+        DataRow(
+          cells: [
+            const DataCell(CircleAvatar(backgroundColor: Colors.purple)),
+            DataCell(Text('Huyết Áp Cực Kỳ Cao', style: textStyle)),
+            DataCell(Text('> 180 hoặc > 120', style: textStyle)),
+          ],
+        ),
+        DataRow(
+          cells: [
+            const DataCell(CircleAvatar(backgroundColor: Colors.redAccent)),
+            DataCell(Text('Tăng Huyết Áp Độ 2', style: textStyle)),
+            DataCell(Text('>= 140 hoặc >= 90', style: textStyle)),
+          ],
+        ),
+        DataRow(
+          cells: [
+            const DataCell(CircleAvatar(backgroundColor: Colors.orange)),
+            DataCell(Text('Tăng Huyết Áp Độ 1', style: textStyle)),
+            DataCell(Text('>= 130 hoặc >= 80', style: textStyle)),
+          ],
+        ),
+        DataRow(
+          cells: [
+            const DataCell(CircleAvatar(backgroundColor: Colors.yellow)),
+            DataCell(Text('Huyết Áp Cao', style: textStyle)),
+            DataCell(Text('>= 120', style: textStyle)),
+          ],
+        ),
+        DataRow(
+          cells: [
+            const DataCell(CircleAvatar(backgroundColor: Colors.green)),
+            DataCell(Text('Bình Thường', style: textStyle)),
+            DataCell(Text('< 120', style: textStyle)),
+          ],
+        ),
       ],
     );
   }

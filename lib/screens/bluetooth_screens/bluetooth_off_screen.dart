@@ -19,24 +19,15 @@ class BluetoothOffScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Icon(
-              Icons.bluetooth_disabled,
-              size: 200.0,
-              color: Colors.white54,
-            ),
+            const Icon(Icons.bluetooth_disabled, size: 200.0, color: Colors.white54),
             Text(
               S.current.bluetoothStatusDes(state != null ? state.toString().substring(10) : 'not available'),
-              style: Theme.of(context)
-                  .primaryTextTheme
-                  .titleSmall
-                  ?.copyWith(color: Colors.white),
+              style: Theme.of(context).primaryTextTheme.titleSmall?.copyWith(color: Colors.white),
             ),
             // Text('Vui lòng bật Bluetooth để tiếp tục'),
             ElevatedButton(
               child: Text('${S.current.turnOn} Bluetooth'),
-              onPressed: Platform.isAndroid
-                  ? () => FlutterBluePlus.turnOn()
-                  : null,
+              onPressed: Platform.isAndroid ? () => FlutterBluePlus.turnOn() : null,
             ),
           ],
         ),

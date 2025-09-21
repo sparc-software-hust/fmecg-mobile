@@ -62,7 +62,7 @@ class FilesManagement {
     const String keyToSave = "files_not_upload";
     final SharedPreferences preferences = await SharedPreferences.getInstance();
     String existingFilePath;
-    
+
     if (preferences.containsKey(keyToSave)) {
       existingFilePath = preferences.getString(keyToSave)!;
       existingFilePath = existingFilePath + '\n$filePath';

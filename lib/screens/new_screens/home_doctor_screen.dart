@@ -33,10 +33,8 @@ class Schedule {
       patientId: json['patient_id'],
       patientName: json['patient_name'],
       doctorName: json['doctor_name'],
-      startTime: DateTime.fromMillisecondsSinceEpoch(
-          json['schedule_start_time'] * 1000),
-      endTime:
-          DateTime.fromMillisecondsSinceEpoch(json['schedule_end_time'] * 1000),
+      startTime: DateTime.fromMillisecondsSinceEpoch(json['schedule_start_time'] * 1000),
+      endTime: DateTime.fromMillisecondsSinceEpoch(json['schedule_end_time'] * 1000),
       scheduleTypeId: json['schedule_type_id'],
       statusId: json['status_id'],
       scheduleResult: json['schedule_result'],
@@ -79,8 +77,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
       final response = await dioConfigInterceptor.get('/schedules/doctor-id');
       final List<dynamic> data = response.data;
-      final List<Schedule> schedules =
-          data.map((json) => Schedule.fromJson(json)).toList();
+      final List<Schedule> schedules = data.map((json) => Schedule.fromJson(json)).toList();
       schedules.sort((a, b) => a.startTime.compareTo(b.startTime));
       final List<Schedule> nearestSchedules = schedules.take(5).toList();
       setState(() {
@@ -118,11 +115,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                           children: [
                             Text(
                               'Hello, Dr. ${userProvider.user?.fullName.split(' ').first}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
-                                color: Colors.white,
-                              ),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
                             ),
                             Row(
                               children: [
@@ -130,57 +123,34 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                                   onPressed: () {
                                     // Open chat with patients
                                   },
-                                  icon: PhosphorIcon(
-                                    PhosphorIcons.regular.chatCircleDots,
-                                    color: Colors.white,
-                                  ),
+                                  icon: PhosphorIcon(PhosphorIcons.regular.chatCircleDots, color: Colors.white),
                                 ),
                                 IconButton(
                                   onPressed: () {
                                     // Open notifications
                                   },
-                                  icon: PhosphorIcon(
-                                    PhosphorIcons.regular.bell,
-                                    color: Colors.white,
-                                  ),
+                                  icon: PhosphorIcon(PhosphorIcons.regular.bell, color: Colors.white),
                                 ),
                               ],
                             ),
                           ],
                         ),
                         const SizedBox(height: 10),
-                        Text(
-                          'You have 3 appointments today!',
-                          style: TextStyle(
-                            color: Colors.grey[300],
-                            fontSize: 16,
-                          ),
-                        ),
+                        Text('You have 3 appointments today!', style: TextStyle(color: Colors.grey[300], fontSize: 16)),
                         const SizedBox(height: 16),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                              ),
-                            ],
+                            boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 8, spreadRadius: 1)],
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text(
                                 'Pending approvals: 5',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
-                                ),
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
                               ),
                               ElevatedButton(
                                 onPressed: () {
@@ -188,14 +158,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
-                                child: const Text(
-                                  'View',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                                child: const Text('View', style: TextStyle(color: Colors.white)),
                               ),
                             ],
                           ),
@@ -219,19 +184,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                           indicatorColor: Colors.blue,
                           labelColor: Colors.blue,
                           unselectedLabelColor: Colors.grey,
-                          tabs: [
-                            Tab(text: 'Appointments'),
-                            Tab(text: 'Patients'),
-                          ],
+                          tabs: [Tab(text: 'Appointments'), Tab(text: 'Patients')],
                         ),
                         SizedBox(
                           height: 700,
-                          child: TabBarView(
-                            children: [
-                              _buildAppointmentsSection(),
-                              _buildPatientsSection(),
-                            ],
-                          ),
+                          child: TabBarView(children: [_buildAppointmentsSection(), _buildPatientsSection()]),
                         ),
                       ],
                     ),
@@ -247,15 +204,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
   Widget _buildAppointmentsSection() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_scheduleList.isEmpty) {
-      return const Center(
-        child: Text('No appointments found.'),
-      );
+      return const Center(child: Text('No appointments found.'));
     }
 
     return ListView.builder(
@@ -263,12 +216,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       itemBuilder: (context, index) {
         final schedule = _scheduleList[index];
         return ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           tileColor: Colors.grey[100],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           title: Text(
             "${schedule.startTime.hour}:${schedule.startTime.minute.toString().padLeft(2, '0')} - ${schedule.patientName}",
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -277,12 +227,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Doctor: ${schedule.doctorName}"),
-              Text(
-                "Date: ${schedule.startTime.day}-${schedule.startTime.month}-${schedule.startTime.year}",
-              ),
-              Text(
-                "Status: ${schedule.statusId == 1 ? "Confirmed" : "Pending"}",
-              ),
+              Text("Date: ${schedule.startTime.day}-${schedule.startTime.month}-${schedule.startTime.year}"),
+              Text("Status: ${schedule.statusId == 1 ? "Confirmed" : "Pending"}"),
             ],
           ),
           trailing: Icon(
@@ -299,41 +245,28 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
   Widget _buildPatientsSection() {
     if (_scheduleList.isEmpty) {
-      return const Center(
-        child: Text('No patients found.'),
-      );
+      return const Center(child: Text('No patients found.'));
     }
 
-    final patients = _scheduleList
-        .map((schedule) => {
-              "name": schedule.patientName.toString(),
-              "lastCheck": schedule.startTime
-            })
-        .toSet()
-        .toList();
+    final patients =
+        _scheduleList
+            .map((schedule) => {"name": schedule.patientName.toString(), "lastCheck": schedule.startTime})
+            .toSet()
+            .toList();
 
     return ListView.builder(
       itemCount: patients.length,
       itemBuilder: (context, index) {
         final patient = patients[index];
         return ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           tileColor: Colors.grey[100],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          title: Text(
-            patient["name"] as String,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: Text(patient["name"] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
           // subtitle: Text(
           //   "Last check-up: ${patient["lastCheck"].day}-${patient["lastCheck"].month}-${patient["lastCheck"].year}",
           // ),
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            color: Colors.blue,
-          ),
+          trailing: Icon(Icons.arrow_forward_ios, color: Colors.blue),
           onTap: () {
             // Navigate to patient details
           },

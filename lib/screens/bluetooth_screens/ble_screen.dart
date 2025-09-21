@@ -7,8 +7,8 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 Uuid uartUUID = Uuid.parse("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
-Uuid uartRX   = Uuid.parse("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
-Uuid uartTX   = Uuid.parse("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
+Uuid uartRX = Uuid.parse("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
+Uuid uartTX = Uuid.parse("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
 
 class BleReactiveScreen extends StatefulWidget {
   const BleReactiveScreen({Key? key}) : super(key: key);
@@ -18,7 +18,6 @@ class BleReactiveScreen extends StatefulWidget {
 }
 
 class _BleReactiveScreenState extends State<BleReactiveScreen> {
-
   final flutterReactiveBle = FlutterReactiveBle();
   List<DiscoveredDevice> devices = [];
   late DiscoveredDevice _deviceNeedConnecting;
@@ -26,8 +25,7 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
   late Stream<ConnectionStateUpdate> _currentConnectionStream;
   late StreamSubscription<ConnectionStateUpdate> _connection;
   late QualifiedCharacteristic _txCharacteristic;
-  final StreamController<DiscoveredDevice> _deviceStreamController =
-      StreamController();
+  final StreamController<DiscoveredDevice> _deviceStreamController = StreamController();
   // late QualifiedCharacteristic _rxCharacteristic;
   late Stream<List<int>> _receivedDataStream;
 
@@ -38,7 +36,6 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
   int _numberOfMessagesReceived = 0;
   Stream<DiscoveredDevice> get deviceStream => _deviceStreamController.stream;
 
-
   @override
   void initState() {
     requestBluetoothPermission();
@@ -46,13 +43,16 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
   }
 
   Future<void> requestBluetoothPermission() async {
-    final List<Permission> permissionsPlatform = Platform.isAndroid
-        ? [Permission.bluetoothConnect, Permission.bluetoothScan]
-        : Platform.isIOS ? [Permission.bluetooth] : [];
+    final List<Permission> permissionsPlatform =
+        Platform.isAndroid
+            ? [Permission.bluetoothConnect, Permission.bluetoothScan]
+            : Platform.isIOS
+            ? [Permission.bluetooth]
+            : [];
     final status = await permissionsPlatform.request();
-    for (PermissionStatus value in status.values) { 
+    for (PermissionStatus value in status.values) {
       if (value.isDenied) {
-        //show popup 
+        //show popup
       }
       print('value:$value');
     }
@@ -124,48 +124,55 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
 
     _connection = _currentConnectionStream.listen((event) {
       var id = event.deviceId.toString();
-      switch(event.connectionState) {
-        case DeviceConnectionState.connecting:{
-          _logTexts = "${_logTexts}Connecting to $id\n";
-          break;
-        }
-        case DeviceConnectionState.connected: {
-          setState(() {
-            _isConnected = true;
-            _foundDeviceWaitingToConnect = false;
-          });
-          _numberOfMessagesReceived = 0;
-          _txCharacteristic = QualifiedCharacteristic(
-            serviceId: uartUUID, 
-            characteristicId: uartTX, 
-            deviceId: event.deviceId
-          );
-          // _rxCharacteristic = QualifiedCharacteristic(serviceId: _UART_UUID, characteristicId: _UART_RX, deviceId: event.deviceId);
-          break;
-        }
-        case DeviceConnectionState.disconnecting: {
-          _isConnected = false;
-          _logTexts = "${_logTexts}Disconnecting from $id\n";
-          break;
-        }
-        case DeviceConnectionState.disconnected: {
-          _logTexts = "${_logTexts}Disconnected from $id\n";
-          break;
-        }
+      switch (event.connectionState) {
+        case DeviceConnectionState.connecting:
+          {
+            _logTexts = "${_logTexts}Connecting to $id\n";
+            break;
+          }
+        case DeviceConnectionState.connected:
+          {
+            setState(() {
+              _isConnected = true;
+              _foundDeviceWaitingToConnect = false;
+            });
+            _numberOfMessagesReceived = 0;
+            _txCharacteristic = QualifiedCharacteristic(
+              serviceId: uartUUID,
+              characteristicId: uartTX,
+              deviceId: event.deviceId,
+            );
+            // _rxCharacteristic = QualifiedCharacteristic(serviceId: _UART_UUID, characteristicId: _UART_RX, deviceId: event.deviceId);
+            break;
+          }
+        case DeviceConnectionState.disconnecting:
+          {
+            _isConnected = false;
+            _logTexts = "${_logTexts}Disconnecting from $id\n";
+            break;
+          }
+        case DeviceConnectionState.disconnected:
+          {
+            _logTexts = "${_logTexts}Disconnected from $id\n";
+            break;
+          }
       }
     });
   }
 
   void _partyTime() {
     _receivedDataStream = flutterReactiveBle.subscribeToCharacteristic(_txCharacteristic);
-    _receivedDataStream.listen((data) {
-      print('data:$data');
-      onNewReceivedData(data);
-    }, onError: (dynamic error) {
-      // _logTexts = "${_logTexts}Error:$error$id\n";
-      print('error while streaming data:$error');
-    });
-  } 
+    _receivedDataStream.listen(
+      (data) {
+        print('data:$data');
+        onNewReceivedData(data);
+      },
+      onError: (dynamic error) {
+        // _logTexts = "${_logTexts}Error:$error$id\n";
+        print('error while streaming data:$error');
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -177,28 +184,29 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-			backgroundColor: Colors.white,
-			body: StreamBuilder<BleStatus>(
-          stream: flutterReactiveBle.statusStream,
-          initialData: BleStatus.unknown,
-          builder: (c, snapshot) {
-            final state = snapshot.data;
-            if (state == BleStatus.ready) {
-              return const BleScanningAndConnectingScreen();
-            } 
-            // else if (state == BleStatus.unknown) {
-            //   return const CircularProgressIndicator();
-            // } 
-            else {
+      backgroundColor: Colors.white,
+      body: StreamBuilder<BleStatus>(
+        stream: flutterReactiveBle.statusStream,
+        initialData: BleStatus.unknown,
+        builder: (c, snapshot) {
+          final state = snapshot.data;
+          if (state == BleStatus.ready) {
+            return const BleScanningAndConnectingScreen();
+          }
+          // else if (state == BleStatus.unknown) {
+          //   return const CircularProgressIndicator();
+          // }
+          else {
             return BluetoothOffScreen(state: state);
-            }
-          }),
-			// persistentFooterButtons: [
+          }
+        },
+      ),
+      // persistentFooterButtons: [
       //    _isScanning
       //       ? ElevatedButton(
       //           style: ElevatedButton.styleFrom(
-      //             primary: Colors.grey, 
-      //             onPrimary: Colors.white, 
+      //             primary: Colors.grey,
+      //             onPrimary: Colors.white,
       //           ),
       //           onPressed: () {},
       //           child: const Icon(Icons.search),
@@ -251,6 +259,6 @@ class _BleReactiveScreenState extends State<BleReactiveScreen> {
       //           child: const Icon(Icons.celebration_rounded),
       //         ),
       // ],
-		);
+    );
   }
 }

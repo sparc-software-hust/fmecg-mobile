@@ -30,33 +30,34 @@ class User {
   });
 
   factory User.fromJson(Map json) => User(
-      id: json["id"],
-      accountId: json["account_id"],
-      username: json["username"],
-      fullName: json["username"],
-      email: json["email"] ?? "",
-      phoneNumber: json["phone_number"],
-      birth: json["birth"],
-      avatarUrl: json["image"],
-      gender: _getGenderBasedOnInt(json["gender"]),
-      role: json["role_id"],
-      // accessToken: json["access_token"],
-      status_id: json["status_id"],
-      information: json["information"]);
+    id: json["id"],
+    accountId: json["account_id"],
+    username: json["username"],
+    fullName: json["username"],
+    email: json["email"] ?? "",
+    phoneNumber: json["phone_number"],
+    birth: json["birth"],
+    avatarUrl: json["image"],
+    gender: _getGenderBasedOnInt(json["gender"]),
+    role: json["role_id"],
+    // accessToken: json["access_token"],
+    status_id: json["status_id"],
+    information: json["information"],
+  );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
-        "account_id": accountId,
-        "username": id,
-        "full_name": id,
-        "email": email,
-        "phone_number": phoneNumber,
-        "birth": birth,
-        "gender": gender,
-        "avatar_url": avatarUrl,
-        "role": role,
-        // "access_token": accessToken
-      };
+    "id": id,
+    "account_id": accountId,
+    "username": id,
+    "full_name": id,
+    "email": email,
+    "phone_number": phoneNumber,
+    "birth": birth,
+    "gender": gender,
+    "avatar_url": avatarUrl,
+    "role": role,
+    // "access_token": accessToken
+  };
 }
 
 enum Gender { male, female, other }

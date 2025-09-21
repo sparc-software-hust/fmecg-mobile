@@ -54,12 +54,13 @@ class DatePicker extends StatefulWidget {
   final String doctorName;
   final String doctorDescription;
   final String type;
-  const DatePicker(
-      {super.key,
-      required this.doctorId,
-      required this.doctorName,
-      required this.doctorDescription,
-      required this.type});
+  const DatePicker({
+    super.key,
+    required this.doctorId,
+    required this.doctorName,
+    required this.doctorDescription,
+    required this.type,
+  });
 
   @override
   State<DatePicker> createState() => _DatePickerState();
@@ -78,12 +79,10 @@ class _DatePickerState extends State<DatePicker> {
   final accessToken = '';
   Future<List<Map<String, dynamic>>> fetcherDate() async {
     try {
-      final response = await dioConfigInterceptor
-          .get('/schedules/doctor-id/${widget.doctorId}');
+      final response = await dioConfigInterceptor.get('/schedules/doctor-id/${widget.doctorId}');
 
-      List<Map<String, dynamic>> formattedData = (response.data as List)
-          .map((item) => item as Map<String, dynamic>)
-          .toList();
+      List<Map<String, dynamic>> formattedData =
+          (response.data as List).map((item) => item as Map<String, dynamic>).toList();
       return formattedData;
     } catch (e) {
       print("Error fetching busy dates: $e");
@@ -91,15 +90,12 @@ class _DatePickerState extends State<DatePicker> {
     }
   }
 
-  Future _sendTimePicker(
-      BigInt selectedTime, String doctorName, String doctorId) async {
-    final DateTime startDateTime =
-        DateTime.fromMillisecondsSinceEpoch(selectedTime.toInt() * 1000);
+  Future _sendTimePicker(BigInt selectedTime, String doctorName, String doctorId) async {
+    final DateTime startDateTime = DateTime.fromMillisecondsSinceEpoch(selectedTime.toInt() * 1000);
 
     final DateTime endDateTime = startDateTime.add(const Duration(minutes: 30));
 
-    final BigInt endTime =
-        BigInt.from(endDateTime.millisecondsSinceEpoch ~/ 1000);
+    final BigInt endTime = BigInt.from(endDateTime.millisecondsSinceEpoch ~/ 1000);
 
     final body = {
       "doctor_id": widget.doctorId == '' ? doctorId : widget.doctorId,
@@ -109,10 +105,7 @@ class _DatePickerState extends State<DatePicker> {
     };
     print(body);
     try {
-      final response = await dioConfigInterceptor.post(
-        '/schedules/create/doctor',
-        data: jsonEncode(body),
-      );
+      final response = await dioConfigInterceptor.post('/schedules/create/doctor', data: jsonEncode(body));
       if (response.statusCode == 201) {
         _showSuccess(true);
       } else {
@@ -138,22 +131,17 @@ class _DatePickerState extends State<DatePicker> {
               selectedTime.hour,
               selectedTime.minute,
             );
-            final int scheduleTime =
-                combinedDateTime.millisecondsSinceEpoch ~/ 1000;
+            final int scheduleTime = combinedDateTime.millisecondsSinceEpoch ~/ 1000;
             if (widget.type == '1') {
               Future.delayed(const Duration(milliseconds: 100), () {
-                _confirmTime(BigInt.from(scheduleTime), widget.doctorName,
-                    widget.doctorId);
+                _confirmTime(BigInt.from(scheduleTime), widget.doctorName, widget.doctorId);
               });
             } else {
               Future.delayed(const Duration(milliseconds: 100), () {
                 showModalBottomSheet(
                   context: context,
                   builder: (BuildContext context) {
-                    return DoctorPickerModal(
-                      scheduleTime: BigInt.from(scheduleTime),
-                      onDoctorSelected: _confirmTime,
-                    );
+                    return DoctorPickerModal(scheduleTime: BigInt.from(scheduleTime), onDoctorSelected: _confirmTime);
                   },
                 );
               });
@@ -166,10 +154,8 @@ class _DatePickerState extends State<DatePicker> {
     );
   }
 
-  void _confirmTime(
-      final BigInt selectedTime, String doctorName, String doctorId) async {
-    final DateTime dateTime =
-        DateTime.fromMillisecondsSinceEpoch(selectedTime.toInt() * 1000);
+  void _confirmTime(final BigInt selectedTime, String doctorName, String doctorId) async {
+    final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(selectedTime.toInt() * 1000);
 
     final String formattedTime =
         "${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')} - ${dateTime.day}-${dateTime.month}-${dateTime.year}";
@@ -182,8 +168,7 @@ class _DatePickerState extends State<DatePicker> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Xác nhận đặt lịch'),
-            content: Text(
-                "Bạn có chắc chắn muốn đặt lịch vào $formattedTime với bác sĩ $doctorName?"),
+            content: Text("Bạn có chắc chắn muốn đặt lịch vào $formattedTime với bác sĩ $doctorName?"),
             actions: <Widget>[
               TextButton(
                 child: const Text("Hủy"),
@@ -207,134 +192,111 @@ class _DatePickerState extends State<DatePicker> {
 
   void _showSuccess(bool isSuccess) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(isSuccess ? 'Thành công' : 'Thất bại'),
-            content: Text(
-              isSuccess
-                  ? 'Lịch hẹn của bạn đã được đặt thành công!'
-                  : 'Đã xảy ra lỗi khi đặt lịch. Vui lòng thử lại.',
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isSuccess ? 'Thành công' : 'Thất bại'),
+          content: Text(
+            isSuccess ? 'Lịch hẹn của bạn đã được đặt thành công!' : 'Đã xảy ra lỗi khi đặt lịch. Vui lòng thử lại.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        });
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text(
-            'Date picker',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          )),
-      body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-          child: TableCalendar(
-            focusedDay: _focusedDay,
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.utc(2025, 12, 31),
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-              if (selectedDay
-                  .isAfter(DateTime.now().subtract(const Duration(days: 1)))) {
-                _showTimePicker();
-              }
-            },
-            calendarStyle: const CalendarStyle(
-                selectedDecoration:
-                    BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
-                todayDecoration: BoxDecoration(
-                    color: Colors.blueAccent, shape: BoxShape.circle)),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-              leftChevronVisible: false,
-              rightChevronVisible: false,
-            ),
-          ),
+        title: const Text('Date picker', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        const SizedBox(
-          height: 8,
-        ),
-        if (widget.type == '1')
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundImage:
-                        AssetImage('assets/images/doctor_image.png'),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.doctorName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.doctorDescription,
-                          style:
-                              const TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        else
+      ),
+      body: Column(
+        children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Please select the date you want to set',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-                fontStyle: FontStyle.italic,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+            child: TableCalendar(
+              focusedDay: _focusedDay,
+              firstDay: DateTime.utc(2024, 1, 1),
+              lastDay: DateTime.utc(2025, 12, 31),
+              selectedDayPredicate: (day) {
+                return isSameDay(_selectedDay, day);
+              },
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+                if (selectedDay.isAfter(DateTime.now().subtract(const Duration(days: 1)))) {
+                  _showTimePicker();
+                }
+              },
+              calendarStyle: const CalendarStyle(
+                selectedDecoration: BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+                todayDecoration: BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
               ),
-              textAlign: TextAlign.center,
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+                leftChevronVisible: false,
+                rightChevronVisible: false,
+              ),
             ),
           ),
-      ]),
+          const SizedBox(height: 8),
+          if (widget.type == '1')
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CircleAvatar(radius: 40, backgroundImage: AssetImage('assets/images/doctor_image.png')),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.doctorName,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(widget.doctorDescription, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Please select the date you want to set',
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -360,10 +322,7 @@ class TimePickerModal extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.all(8.0),
-          child: Text(
-            'Select a time',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          child: Text('Select a time', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -374,9 +333,7 @@ class TimePickerModal extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Center(
-                  child: Text("${snapshot.error}"),
-                );
+                return Center(child: Text("${snapshot.error}"));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return ListView.builder(
                   itemCount: 21,
@@ -385,9 +342,7 @@ class TimePickerModal extends StatelessWidget {
                     final minute = (index % 2) * 30;
                     final time = TimeOfDay(hour: hour, minute: minute);
                     return ListTile(
-                      title: Center(
-                        child: Text(time.format(context)),
-                      ),
+                      title: Center(child: Text(time.format(context))),
                       onTap: () {
                         onTimeSelected(time);
                         Navigator.pop(context);
@@ -404,31 +359,27 @@ class TimePickerModal extends StatelessWidget {
                     final hour = 8 + index ~/ 2;
                     final minute = (index % 2) * 30;
                     final time = TimeOfDay(hour: hour, minute: minute);
-                    final timeDate = DateTime(
-                                selectedDate.year,
-                                selectedDate.month,
-                                selectedDate.day,
-                                hour,
-                                minute)
-                            .millisecondsSinceEpoch ~/
+                    final timeDate =
+                        DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          hour,
+                          minute,
+                        ).millisecondsSinceEpoch ~/
                         1000;
-                    final isBusy = busyHours
-                        .any((item) => item['schedule_start_time'] == timeDate);
+                    final isBusy = busyHours.any((item) => item['schedule_start_time'] == timeDate);
                     return ListTile(
                       title: Center(
-                        child: Text(
-                          time.format(context),
-                          style: TextStyle(
-                            color: isBusy ? Colors.red : Colors.black,
-                          ),
-                        ),
+                        child: Text(time.format(context), style: TextStyle(color: isBusy ? Colors.red : Colors.black)),
                       ),
-                      onTap: isBusy
-                          ? null
-                          : () {
-                              onTimeSelected(time);
-                              Navigator.pop(context);
-                            },
+                      onTap:
+                          isBusy
+                              ? null
+                              : () {
+                                onTimeSelected(time);
+                                Navigator.pop(context);
+                              },
                     );
                   },
                 );
@@ -443,20 +394,14 @@ class TimePickerModal extends StatelessWidget {
 
 class DoctorPickerModal extends StatelessWidget {
   final BigInt scheduleTime;
-  final void Function(BigInt scheduleTime, String doctorName, String doctorId)
-      onDoctorSelected;
-  const DoctorPickerModal(
-      {Key? key, required this.scheduleTime, required this.onDoctorSelected})
-      : super(key: key);
+  final void Function(BigInt scheduleTime, String doctorName, String doctorId) onDoctorSelected;
+  const DoctorPickerModal({Key? key, required this.scheduleTime, required this.onDoctorSelected}) : super(key: key);
 
   Future<List<Doctor>> fetcherDoctor() async {
     print(scheduleTime);
     try {
-      final response = await dioConfigInterceptor
-          .get('/schedules/time/available-doctor/$scheduleTime');
-      return (response.data as List)
-          .map((item) => Doctor.fromJson(item as Map<String, dynamic>))
-          .toList();
+      final response = await dioConfigInterceptor.get('/schedules/time/available-doctor/$scheduleTime');
+      return (response.data as List).map((item) => Doctor.fromJson(item as Map<String, dynamic>)).toList();
     } catch (e) {
       throw Exception('Failed to load doctor data: $e');
     }
@@ -467,10 +412,7 @@ class DoctorPickerModal extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Select a Doctor',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Select a Doctor', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
       body: FutureBuilder<List<Doctor>>(
@@ -492,8 +434,7 @@ class DoctorPickerModal extends StatelessWidget {
                 return ListTile(
                   leading: const CircleAvatar(
                     radius: 20,
-                    backgroundImage:
-                        AssetImage('assets/images/doctor_image.png'),
+                    backgroundImage: AssetImage('assets/images/doctor_image.png'),
                   ),
                   title: Text(doctor.username),
                   subtitle: Text(doctor.information),

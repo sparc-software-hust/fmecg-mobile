@@ -1,4 +1,3 @@
-
 import 'package:fmecg_mobile/generated/l10n.dart';
 
 extension ErrorMessage on S {

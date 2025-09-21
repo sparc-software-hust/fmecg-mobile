@@ -108,25 +108,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   //     ],
                   //   ),
                   // ]),
-                  const IconButton(
-                    icon: Icon(
-                      Icons.menu,
-                      size: 35,
-                    ),
-                    onPressed: null,
+                  const IconButton(icon: Icon(Icons.menu, size: 35), onPressed: null),
+                  Row(
+                    children: [
+                      // const DarkLightSwitch(),
+                      InkWell(child: Icon(PhosphorIcons.regular.bell)),
+                      SizedBox(width: width * 0.05),
+                      const CircularAvatar(imageAsset: 'assets/images/doctor.png', radius: 27),
+                    ],
                   ),
-                  Row(children: [
-                    // const DarkLightSwitch(),
-
-                    InkWell(
-                      child: Icon(PhosphorIcons.regular.bell),
-                    ),
-                    SizedBox(
-                      width: width * 0.05,
-                    ),
-                    const CircularAvatar(
-                        imageAsset: 'assets/images/doctor.png', radius: 27),
-                  ])
                 ],
               ),
             ),
@@ -140,10 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     alignment: Alignment.topLeft,
                     child: Text(
                       "${S.current.welcomeSentence}\nFinnick",
-                      style: TextStyle(
-                          color: ColorConstant.black900,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22),
+                      style: TextStyle(color: ColorConstant.black900, fontWeight: FontWeight.bold, fontSize: 22),
                     ),
                   ),
                   SizedBox(height: height * 0.05),
@@ -153,12 +140,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     alignment: WrapAlignment.spaceAround,
                     children: [
                       NumberCard(
-                        leadingIcon: Icon(
-                          PhosphorIcons.fill.heartbeat,
-                          color: Colors.red.shade400,
-                        ),
-                        centerImage:
-                            Image.asset("assets/images/heart_rate.png"),
+                        leadingIcon: Icon(PhosphorIcons.fill.heartbeat, color: Colors.red.shade400),
+                        centerImage: Image.asset("assets/images/heart_rate.png"),
                         number: 82.0,
                         text: S.current.heartbeat,
                         subText: "",
@@ -168,8 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       NumberCard(
                         leadingIcon: Icon(PhosphorIcons.fill.stethoscope),
-                        centerImage:
-                            Image.asset("assets/images/blood_pressure.png"),
+                        centerImage: Image.asset("assets/images/blood_pressure.png"),
                         number: 72.9,
                         text: S.current.bloodPressure,
                         subText: "",
@@ -204,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       //   // color2: ColorConstant.teal,
                       // ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -213,37 +195,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
             !isShowChart
                 ? ImageCard(
-                    imageAsset: 'assets/images/heart_rate_example.jpeg',
-                    functionScanBluetooth: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const BleReactiveScreen(),
-                          ));
-                    },
-                    temporaryNothing: () async {
-                      FilesManagement.createDirectoryFirstTimeWithDevice();
-                      fileToSave = await FilesManagement
-                          .setUpFileToSaveDataMeasurement();
-                      setState(() {
-                        isShowChart = true;
-                      });
-                    })
-                : LiveChartSample(
-                    fileToSave: fileToSave,
-                    callBackToPreview: () =>
-                        setState(() => isShowChart = false)),
+                  imageAsset: 'assets/images/heart_rate_example.jpeg',
+                  functionScanBluetooth: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const BleReactiveScreen()));
+                  },
+                  temporaryNothing: () async {
+                    FilesManagement.createDirectoryFirstTimeWithDevice();
+                    fileToSave = await FilesManagement.setUpFileToSaveDataMeasurement();
+                    setState(() {
+                      isShowChart = true;
+                    });
+                  },
+                )
+                : LiveChartSample(fileToSave: fileToSave, callBackToPreview: () => setState(() => isShowChart = false)),
             const SizedBox(height: 20),
             Container(
               alignment: Alignment.topLeft,
               padding: const EdgeInsets.only(bottom: 10),
               child: Text(
                 S.current.familyMemberPhone,
-                style: TextStyle(
-                  color: ColorConstant.quaternary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
+                style: TextStyle(color: ColorConstant.quaternary, fontWeight: FontWeight.bold, fontSize: 22),
               ),
             ),
 
@@ -254,15 +225,14 @@ class _HomeScreenState extends State<HomeScreen> {
               enabled: _isEditing,
               focusNode: focusInputPhone,
               decoration: InputDecoration(
-                border: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black)),
-                hintText:
-                    "${S.current.enter} ${S.current.phoneNumber.toLowerCase()}",
+                border: const OutlineInputBorder(borderSide: BorderSide(color: Colors.black)),
+                hintText: "${S.current.enter} ${S.current.phoneNumber.toLowerCase()}",
                 labelText: S.current.phoneNumber,
               ),
-              onChanged: (text) => setState(() {
-                phoneNumberWarning = _phoneController.text;
-              }),
+              onChanged:
+                  (text) => setState(() {
+                    phoneNumberWarning = _phoneController.text;
+                  }),
             ),
 
             // Nút chỉnh sửa và lưu
@@ -280,16 +250,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 20), // Khoảng cách giữa các nút
                 ElevatedButton(
-                  onPressed: phoneNumberWarning == ""
-                      ? null
-                      : () async {
-                          await _savePhoneNumberToSharedPrefs(
-                              _phoneController.text);
-                          setState(() {
-                            _isEditing = false;
-                            phoneNumberWarning = "";
-                          });
-                        },
+                  onPressed:
+                      phoneNumberWarning == ""
+                          ? null
+                          : () async {
+                            await _savePhoneNumberToSharedPrefs(_phoneController.text);
+                            setState(() {
+                              _isEditing = false;
+                              phoneNumberWarning = "";
+                            });
+                          },
                   child: Text(S.current.save),
                 ),
               ],
@@ -303,9 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class DarkLightSwitch extends StatefulWidget {
-  const DarkLightSwitch({
-    Key? key,
-  }) : super(key: key);
+  const DarkLightSwitch({Key? key}) : super(key: key);
 
   @override
   State<DarkLightSwitch> createState() => _DarkLightSwitchState();
@@ -330,24 +298,12 @@ class _DarkLightSwitchState extends State<DarkLightSwitch> {
       padding: 1.5,
       activeToggleColor: const Color(0xFF6E40C9),
       inactiveToggleColor: const Color(0xFF2F363D),
-      activeSwitchBorder: Border.all(
-        color: const Color(0xFF3C1E70),
-        width: 3.0,
-      ),
-      inactiveSwitchBorder: Border.all(
-        color: const Color(0xFFD1D5DA),
-        width: 3.0,
-      ),
+      activeSwitchBorder: Border.all(color: const Color(0xFF3C1E70), width: 3.0),
+      inactiveSwitchBorder: Border.all(color: const Color(0xFFD1D5DA), width: 3.0),
       activeColor: const Color(0xFF271052),
       inactiveColor: Colors.white,
-      activeIcon: const Icon(
-        Icons.nightlight_round,
-        color: Color(0xFFF8E3A1),
-      ),
-      inactiveIcon: const Icon(
-        Icons.wb_sunny,
-        color: Color(0xFFFFDF5D),
-      ),
+      activeIcon: const Icon(Icons.nightlight_round, color: Color(0xFFF8E3A1)),
+      inactiveIcon: const Icon(Icons.wb_sunny, color: Color(0xFFFFDF5D)),
       onToggle: (val) {
         Provider.of<AuthProvider>(context, listen: false).isAutoTheme = false;
         final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -369,9 +325,7 @@ class SquareContainer extends StatelessWidget {
   final String text;
   final Function? onTap;
 
-  const SquareContainer(
-      {Key? key, required this.icon, required this.text, this.onTap})
-      : super(key: key);
+  const SquareContainer({Key? key, required this.icon, required this.text, this.onTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -382,26 +336,15 @@ class SquareContainer extends StatelessWidget {
         child: Container(
           width: 100.0,
           height: 100.0,
-          decoration: BoxDecoration(
-            color: ColorConstant.description,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: ColorConstant.description, borderRadius: BorderRadius.circular(12)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: ColorConstant.quaternary,
-                size: 35.0,
-              ),
+              Icon(icon, color: ColorConstant.quaternary, size: 35.0),
               const SizedBox(height: 10.0),
               Text(
                 text,
-                style: TextStyle(
-                  color: ColorConstant.quaternary,
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: ColorConstant.quaternary, fontSize: 15.0, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -420,16 +363,16 @@ class NumberCard extends StatefulWidget {
   final Image centerImage;
   final Function? onTap;
 
-  const NumberCard(
-      {Key? key,
-      required this.number,
-      required this.text,
-      required this.subText,
-      required this.unit,
-      required this.centerImage,
-      required this.leadingIcon,
-      this.onTap})
-      : super(key: key);
+  const NumberCard({
+    Key? key,
+    required this.number,
+    required this.text,
+    required this.subText,
+    required this.unit,
+    required this.centerImage,
+    required this.leadingIcon,
+    this.onTap,
+  }) : super(key: key);
 
   @override
   State<NumberCard> createState() => _NumberCardState();
@@ -448,10 +391,7 @@ class _NumberCardState extends State<NumberCard> {
         setState(() {
           _isClicked = !_isClicked;
         });
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const PreviewCalculation()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const PreviewCalculation()));
         widget.onTap?.call();
       },
       child: Container(
@@ -460,9 +400,7 @@ class _NumberCardState extends State<NumberCard> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.0),
           gradient: LinearGradient(
-            colors: _isClicked
-                ? [Colors.teal, Colors.tealAccent]
-                : [Colors.grey, Colors.blueGrey],
+            colors: _isClicked ? [Colors.teal, Colors.tealAccent] : [Colors.grey, Colors.blueGrey],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -485,45 +423,36 @@ class _NumberCardState extends State<NumberCard> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: _isClicked
-                          ? ColorConstant.black900
-                          : ColorConstant.description,
+                      color: _isClicked ? ColorConstant.black900 : ColorConstant.description,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 3.0),
-            Text(
-              widget.subText,
-              style: TextStyle(
-                fontSize: 16.0,
-                color: _isClicked ? Colors.amber : Colors.brown,
-              ),
-            ),
+            Text(widget.subText, style: TextStyle(fontSize: 16.0, color: _isClicked ? Colors.amber : Colors.brown)),
             const SizedBox(height: 10.0),
             Expanded(child: widget.centerImage),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-              Text(
-                '${widget.number}',
-                style: TextStyle(
-                  fontSize: 30.0,
-                  color: _isClicked
-                      ? ColorConstant.black900
-                      : ColorConstant.description,
-                  fontWeight: FontWeight.bold,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text(
+                  '${widget.number}',
+                  style: TextStyle(
+                    fontSize: 30.0,
+                    color: _isClicked ? ColorConstant.black900 : ColorConstant.description,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                widget.unit,
-                style: TextStyle(
-                  color: _isClicked
-                      ? ColorConstant.black900
-                      : ColorConstant.description,
-                  fontSize: 15,
+                Text(
+                  widget.unit,
+                  style: TextStyle(
+                    color: _isClicked ? ColorConstant.black900 : ColorConstant.description,
+                    fontSize: 15,
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ],
         ),
       ),
@@ -548,32 +477,19 @@ class ImageCard extends StatelessWidget {
     return Card(
       color: ColorConstant.quinary,
       elevation: 4.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       child: Column(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: Image.asset(
-              imageAsset,
-              width: double.infinity,
-              height: 200.0,
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset(imageAsset, width: double.infinity, height: 200.0, fit: BoxFit.cover),
           ),
           // const SizedBox(height: 12.0),
           ButtonBar(
             alignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: functionScanBluetooth,
-                child: const Text("Scan bluetooth"),
-              ),
-              ElevatedButton(
-                onPressed: temporaryNothing,
-                child: const Text("Test live chart"),
-              ),
+              ElevatedButton(onPressed: functionScanBluetooth, child: const Text("Scan bluetooth")),
+              ElevatedButton(onPressed: temporaryNothing, child: const Text("Test live chart")),
             ],
           ),
         ],

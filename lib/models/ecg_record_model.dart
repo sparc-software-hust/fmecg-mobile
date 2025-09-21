@@ -4,12 +4,7 @@ class EcgRecord {
   int deviceId;
   String dataDirectory;
 
-  EcgRecord({
-    required this.id,
-    required this.userId,
-    required this.deviceId,
-    required this.dataDirectory,
-  });
+  EcgRecord({required this.id, required this.userId, required this.deviceId, required this.dataDirectory});
 
   factory EcgRecord.fromJson(Map<String, dynamic> json) => EcgRecord(
     id: json["id"],

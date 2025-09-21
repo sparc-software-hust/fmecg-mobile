@@ -36,9 +36,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
 
   void _submitSchedule() async {
     if (_selectedDate == null || _selectedHour == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn ngày và giờ')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn ngày và giờ')));
       return;
     }
 
@@ -49,8 +47,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
       _selectedHour!,
     );
 
-    final int scheduleStartTime =
-        (scheduledDateTime.millisecondsSinceEpoch / 1000).round();
+    final int scheduleStartTime = (scheduledDateTime.millisecondsSinceEpoch / 1000).round();
     final int scheduleEndTime = scheduleStartTime + 30 * 60;
 
     final Map<String, dynamic> body = {
@@ -61,10 +58,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
     };
     print(body);
     try {
-      final response = await dioConfigInterceptor.post(
-        '/schedules',
-        data: jsonEncode(body),
-      );
+      final response = await dioConfigInterceptor.post('/schedules', data: jsonEncode(body));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         showDialog(
@@ -93,8 +87,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Lỗi'),
-              content: Text(
-                  'Không thể tạo lịch tái khám.\nLỗi: ${response.statusMessage}'),
+              content: Text('Không thể tạo lịch tái khám.\nLỗi: ${response.statusMessage}'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -108,9 +101,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã xảy ra lỗi: $e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã xảy ra lỗi: $e')));
     }
   }
 
@@ -121,17 +112,12 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Tạo lịch tái khám',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text('Tạo lịch tái khám', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           ListTile(
             leading: const Icon(Icons.calendar_today),
             title: Text(
-              _selectedDate != null
-                  ? 'Ngày: ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}'
-                  : 'Chọn ngày',
+              _selectedDate != null ? 'Ngày: ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}' : 'Chọn ngày',
             ),
             onTap: _pickDate,
           ),
@@ -141,12 +127,10 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
               isExpanded: true,
               value: _selectedHour,
               hint: const Text('Chọn giờ'),
-              items: availableHours.map((hour) {
-                return DropdownMenuItem<int>(
-                  value: hour,
-                  child: Text('$hour:00'),
-                );
-              }).toList(),
+              items:
+                  availableHours.map((hour) {
+                    return DropdownMenuItem<int>(value: hour, child: Text('$hour:00'));
+                  }).toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedHour = value;
@@ -157,10 +141,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _submitSchedule,
-              child: const Text('Xác nhận lịch tái khám'),
-            ),
+            child: ElevatedButton(onPressed: _submitSchedule, child: const Text('Xác nhận lịch tái khám')),
           ),
           const SizedBox(height: 10),
           SizedBox(
@@ -169,9 +150,7 @@ class _SchedulePickByDoctorState extends State<SchedulePickByDoctor> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
               child: const Text('Hủy'),
             ),
           ),

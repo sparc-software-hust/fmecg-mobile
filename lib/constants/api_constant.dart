@@ -8,9 +8,7 @@ class APIConstant {
 
   String apiUrl = "";
   String socketUrl = "";
-  Map<String, String> headers = <String, String>{
-    'Content-Type': 'application/json;charset=UTF-8'
-  };
+  Map<String, String> headers = <String, String>{'Content-Type': 'application/json;charset=UTF-8'};
 
   getMode() {
     if (kDebugMode || kProfileMode) {

@@ -9,8 +9,7 @@ class AuthRepository {
     String url = apiConstant.apiUrl + '/auth/login';
     final bodyEncoded = jsonEncode({"email": email, "password": password});
     try {
-      final response = await http.post(Uri.parse(url),
-          headers: apiConstant.headers, body: bodyEncoded);
+      final response = await http.post(Uri.parse(url), headers: apiConstant.headers, body: bodyEncoded);
       final Map responseData = jsonDecode(response.body);
       return responseData;
     } catch (err) {
@@ -23,8 +22,7 @@ class AuthRepository {
     String url = apiConstant.apiUrl + '/auth/register';
     final bodyEncoded = jsonEncode({"email": email, "password": password});
     try {
-      final response = await http.post(Uri.parse(url),
-          headers: apiConstant.headers, body: bodyEncoded);
+      final response = await http.post(Uri.parse(url), headers: apiConstant.headers, body: bodyEncoded);
       final Map responseData = jsonDecode(response.body);
       return responseData;
     } catch (err) {

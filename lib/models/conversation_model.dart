@@ -5,13 +5,7 @@ class Conversation {
   final String? avatarUrl;
   final DateTime insertedAt;
 
-  Conversation({
-    required this.id,
-    this.name,
-    this.type,
-    this.avatarUrl,
-    required this.insertedAt,
-  });
+  Conversation({required this.id, this.name, this.type, this.avatarUrl, required this.insertedAt});
 
   factory Conversation.fromJson(Map<String, dynamic> json) => Conversation(
     id: json["id"],

@@ -158,20 +158,9 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _doctorScreens = [
-      DoctorHomeScreen(),
-      ScheduleScreen(),
-      ChatScreen(),
-      PersonalInfor(),
-    ];
+    _doctorScreens = [DoctorHomeScreen(), ScheduleScreen(), ChatScreen(), PersonalInfor()];
 
-    _patientScreens = [
-      NewHomeScreen(),
-      HeartRateScreen(),
-      ScheduleScreen(),
-      ChatScreen(),
-      PersonalInfor(),
-    ];
+    _patientScreens = [NewHomeScreen(), HeartRateScreen(), ScheduleScreen(), ChatScreen(), PersonalInfor()];
   }
 
   @override
@@ -201,64 +190,61 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _currentIndex,
         onTap: (int index) {
           // setState(() {
-            _currentIndex = index;
+          _currentIndex = index;
           // });
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
         },
-        items: role == 2
-            ? [
-                SalomonBottomBarItem(
-                  icon: const Icon(Icons.home),
-                  title: const Text('Home'),
-                  selectedColor: Colors.blue,
-                ),
-                SalomonBottomBarItem(
-                  icon: Icon(PhosphorIcons.regular.calendar),
-                  title: const Text('Schedule'),
-                  selectedColor: Colors.purple,
-                ),
-                SalomonBottomBarItem(
-                  icon: Icon(PhosphorIcons.regular.chatCircle),
-                  title: const Text('Chat'),
-                  selectedColor: Colors.blue,
-                ),
-                SalomonBottomBarItem(
-                  icon: const Icon(Icons.settings),
-                  title: const Text('Profile'),
-                  selectedColor: Colors.blue,
-                ),
-              ]
-            : [
-                SalomonBottomBarItem(
-                  icon: const Icon(Icons.home),
-                  title: const Text('Home'),
-                  selectedColor: Colors.blue,
-                ),
-                SalomonBottomBarItem(
-                  icon: const Icon(Icons.search),
-                  title: const Text('Measurement'),
-                  selectedColor: Colors.blue,
-                ),
-                SalomonBottomBarItem(
-                  icon: Icon(PhosphorIcons.regular.calendar),
-                  title: const Text('Calendar'),
-                  selectedColor: Colors.purple,
-                ),
-                SalomonBottomBarItem(
-                  icon: Icon(PhosphorIcons.regular.chatCircle),
-                  title: const Text('Chat'),
-                  selectedColor: Colors.blue,
-                ),
-                SalomonBottomBarItem(
-                  icon: const Icon(Icons.settings),
-                  title: const Text('Settings'),
-                  selectedColor: Colors.blue,
-                ),
-              ],
+        items:
+            role == 2
+                ? [
+                  SalomonBottomBarItem(
+                    icon: const Icon(Icons.home),
+                    title: const Text('Home'),
+                    selectedColor: Colors.blue,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: Icon(PhosphorIcons.regular.calendar),
+                    title: const Text('Schedule'),
+                    selectedColor: Colors.purple,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: Icon(PhosphorIcons.regular.chatCircle),
+                    title: const Text('Chat'),
+                    selectedColor: Colors.blue,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: const Icon(Icons.settings),
+                    title: const Text('Profile'),
+                    selectedColor: Colors.blue,
+                  ),
+                ]
+                : [
+                  SalomonBottomBarItem(
+                    icon: const Icon(Icons.home),
+                    title: const Text('Home'),
+                    selectedColor: Colors.blue,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: const Icon(Icons.search),
+                    title: const Text('Measurement'),
+                    selectedColor: Colors.blue,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: Icon(PhosphorIcons.regular.calendar),
+                    title: const Text('Calendar'),
+                    selectedColor: Colors.purple,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: Icon(PhosphorIcons.regular.chatCircle),
+                    title: const Text('Chat'),
+                    selectedColor: Colors.blue,
+                  ),
+                  SalomonBottomBarItem(
+                    icon: const Icon(Icons.settings),
+                    title: const Text('Settings'),
+                    selectedColor: Colors.blue,
+                  ),
+                ],
       ),
     );
   }

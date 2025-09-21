@@ -80,7 +80,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     timer?.cancel();
     if (widget.fileToSave == null) return;
 
-    final DateTime stopTime = DateTime.now(); 
+    final DateTime stopTime = DateTime.now();
     // final SharedPreferences preferences = await SharedPreferences.getInstance();
     // final Map userDataDecoded = json.decode((preferences.getString('userData') ?? ""));
 
@@ -168,7 +168,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
           activeColor: const Color(0xFF4f6bff),
           enableTooltip: true,
           minorTicksPerInterval: 0,
-          onChanged: (dynamic value){
+          onChanged: (dynamic value) {
             _clearChartData(cancelTimer: false);
             setState(() {
               countX = value.toInt();
@@ -185,18 +185,18 @@ class _LiveChartSampleState extends State<LiveChartSample> {
               //     if (widget.callBackToPreview != null) {
               //       widget.callBackToPreview!.call();
               //     }
-              //   }, 
+              //   },
               //   child: const Text('Quay lại')
               // ),
               ElevatedButton(
                 onPressed: () {
                   _startUpdateData();
-                }, 
-                child: const Text('Bắt đầu test')
+                },
+                child: const Text('Bắt đầu test'),
               ),
               ElevatedButton(
                 onPressed: () async {
-                    _clearChartData();
+                  _clearChartData();
                   // if (isButtonEndMeasurement) {
                   //   _clearChartData();
                   //   // await _saveDataAndSendToServer();
@@ -206,12 +206,13 @@ class _LiveChartSampleState extends State<LiveChartSample> {
                   //     isButtonEndMeasurement = true;
                   //   });
                   // }
-              }, 
-              child: Text(!isButtonEndMeasurement ? "Start Demo Chart" : "Kết thúc đo")
-        ),
+                },
+                child: Text(!isButtonEndMeasurement ? "Start Demo Chart" : "Kết thúc đo"),
+              ),
             ],
           ),
-      )]
+        ),
+      ],
     );
   }
 
@@ -234,13 +235,10 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       primaryYAxis: const NumericAxis(
         interactiveTooltip: InteractiveTooltip(enable: false),
         edgeLabelPlacement: EdgeLabelPlacement.shift,
-        majorGridLines: MajorGridLines(width: 1)),
-      legend: const Legend(
-        isVisible: true,
-        isResponsive: true,
-        position: LegendPosition.top
+        majorGridLines: MajorGridLines(width: 1),
       ),
-      series:[
+      legend: const Legend(isVisible: true, isResponsive: true, position: LegendPosition.top),
+      series: [
         LineSeries<ChartData, int>(
           enableTooltip: false,
           onRendererCreated: (ChartSeriesController controller) {
@@ -256,25 +254,19 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       ],
     );
   }
+
   SfCartesianChart _buildLiveLineChart1() {
     return SfCartesianChart(
-      title: const ChartTitle(
-        alignment: ChartAlignment.center,
-      ),
+      title: const ChartTitle(alignment: ChartAlignment.center),
       // enableAxisAnimation: true,
       plotAreaBorderWidth: 0,
-      primaryXAxis: const NumericAxis(
-          edgeLabelPlacement: EdgeLabelPlacement.shift
-      ),
+      primaryXAxis: const NumericAxis(edgeLabelPlacement: EdgeLabelPlacement.shift),
       primaryYAxis: const NumericAxis(
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(width: 1)),
-      legend: const Legend(
-          isVisible: true,
-          isResponsive: true,
-          position: LegendPosition.top
+        edgeLabelPlacement: EdgeLabelPlacement.shift,
+        majorGridLines: MajorGridLines(width: 1),
       ),
-      series:[
+      legend: const Legend(isVisible: true, isResponsive: true, position: LegendPosition.top),
+      series: [
         LineSeries<ChartData, int>(
           onRendererCreated: (ChartSeriesController controller) {
             _chartSeriesControllerPCG = controller;

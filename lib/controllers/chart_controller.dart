@@ -1,7 +1,7 @@
 // class ChartController {
-//   static get channelData => 
+//   static get channelData =>
 
 //   static getChannelData() {
-    
+
 //   };
 // }

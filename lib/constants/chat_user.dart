@@ -4,17 +4,15 @@ class ChatUsers {
   final String imageUrl;
   final String time;
 
-  ChatUsers(
-      {required this.name,
-      required this.message,
-      required this.imageUrl,
-      required this.time});
+  ChatUsers({required this.name, required this.message, required this.imageUrl, required this.time});
   static List<ChatUsers> chatUsers = [
     ChatUsers(
-        name: "Heathcare AI",
-        message: "Tôi có thể giúp gì cho bạn",
-        imageUrl: "https://cdn.dribbble.com/userupload/2798815/file/original-d8b75e59492e979ad996c39eac216499.png?resize=300x",
-        time: "8:00"),
+      name: "Heathcare AI",
+      message: "Tôi có thể giúp gì cho bạn",
+      imageUrl:
+          "https://cdn.dribbble.com/userupload/2798815/file/original-d8b75e59492e979ad996c39eac216499.png?resize=300x",
+      time: "8:00",
+    ),
     // ChatUsers(
     //     name: "Nguyễn Văn B",
     //     message: "ok",

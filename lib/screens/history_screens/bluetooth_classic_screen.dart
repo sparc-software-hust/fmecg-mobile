@@ -258,7 +258,7 @@
 //                       },
 //                     ),
 //                   );
-      
+
 //                   if (selectedDevice != null) {
 //                     print('Discovery -> selected ' + selectedDevice.address);
 //                   } else {

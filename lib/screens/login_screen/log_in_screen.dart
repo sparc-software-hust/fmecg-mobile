@@ -24,8 +24,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool isValidEmail(String emailTyped) {
     // regular expression: example@email.vn (not begin with .): test@vais.vn
-    final emailRegExp =
-        RegExp(r"^[a-zA-Z0-9][a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    final emailRegExp = RegExp(r"^[a-zA-Z0-9][a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
     return emailRegExp.hasMatch(emailTyped);
   }
 
@@ -47,28 +46,17 @@ class _SignInScreenState extends State<SignInScreen> {
     final size = MediaQuery.of(context).size;
     final authProvider = Provider.of<AuthProvider>(context);
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Image.asset("assets/images/fmECG_branding.png"),
-      ),
+      appBar: AppBar(centerTitle: true, title: Image.asset("assets/images/fmECG_branding.png")),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Text("Welcome",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade800,
-                    )),
-                const Text(
-                  "To fmECG!",
-                  style: TextStyle(
-                    fontSize: 22,
-                    color: Colors.black,
-                  ),
+                Text(
+                  "Welcome",
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.blue.shade800),
                 ),
+                const Text("To fmECG!", style: TextStyle(fontSize: 22, color: Colors.black)),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -80,25 +68,24 @@ class _SignInScreenState extends State<SignInScreen> {
                           right: size.width * 0.05,
                         ),
                         child: TextFormField(
-                            controller: _emailController,
-                            decoration: InputDecoration(
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              label: const Text("Phone number or email"),
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(15.0)),
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (!isValidEmail(value!)) {
-                                return "Enter valid email: example@email.com";
-                              }
-                              if (value.isEmpty) {
-                                return "Email can't left empty";
-                              }
-                              return null;
-                            },
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction),
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            hintStyle: const TextStyle(color: Colors.grey),
+                            label: const Text("Phone number or email"),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (!isValidEmail(value!)) {
+                              return "Enter valid email: example@email.com";
+                            }
+                            if (value.isEmpty) {
+                              return "Email can't left empty";
+                            }
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
                       ),
                       Padding(
                         padding: EdgeInsets.only(
@@ -111,17 +98,14 @@ class _SignInScreenState extends State<SignInScreen> {
                           obscureText: _obscureText,
                           decoration: InputDecoration(
                             label: const Text("Password"),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15.0)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
                             suffixIcon: GestureDetector(
                               onTap: () {
                                 setState(() {
                                   _obscureText = !_obscureText;
                                 });
                               },
-                              child: Icon(_obscureText
-                                  ? Icons.visibility_off
-                                  : Icons.visibility),
+                              child: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
                             ),
                           ),
                           validator: (value) {
@@ -137,69 +121,48 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(
-                            left: size.width * 0.6, bottom: size.height * 0.04),
+                        padding: EdgeInsets.only(left: size.width * 0.6, bottom: size.height * 0.04),
                         child: TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              "Forgot password ?",
-                              style: TextStyle(
-                                color: Colors.blue.shade700,
-                              ),
-                            )),
+                          onPressed: () {},
+                          child: Text("Forgot password ?", style: TextStyle(color: Colors.blue.shade700)),
+                        ),
                       ),
                       Center(
                         child: Container(
-                          margin: EdgeInsets.only(
-                              top: size.height * 0.02,
-                              bottom: size.height * 0.02),
+                          margin: EdgeInsets.only(top: size.height * 0.02, bottom: size.height * 0.02),
                           height: size.height * 0.08,
                           child: ElevatedButton(
-                            onPressed: authProvider.isLoading
-                                ? null
-                                : () async {
-                                    if (_formKey.currentState!.validate()) {
-                                      await authProvider.login(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      );
-                                    }
-                                    if (authProvider.token.isNotEmpty) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Login successful!'),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-
-                                      Future.delayed(const Duration(seconds: 2),
-                                          () {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const MainScreen()),
+                            onPressed:
+                                authProvider.isLoading
+                                    ? null
+                                    : () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        await authProvider.login(_emailController.text, _passwordController.text);
+                                      }
+                                      if (authProvider.token.isNotEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Login successful!'),
+                                            duration: Duration(seconds: 2),
+                                          ),
                                         );
-                                      });
-                                    }
-                                  },
-                            child: authProvider.isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const Text(
-                                    "Log in",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
+
+                                        Future.delayed(const Duration(seconds: 2), () {
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const MainScreen()),
+                                          );
+                                        });
+                                      }
+                                    },
+                            child:
+                                authProvider.isLoading
+                                    ? const CircularProgressIndicator(color: Colors.white)
+                                    : const Text("Log in", style: TextStyle(color: Colors.black)),
                             style: ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll<Color>(
-                                  Colors.blue.shade700),
-                              padding:
-                                  MaterialStatePropertyAll<EdgeInsetsGeometry>(
-                                EdgeInsets.symmetric(
-                                  horizontal: size.width * 0.39,
-                                ),
+                              backgroundColor: MaterialStatePropertyAll<Color>(Colors.blue.shade700),
+                              padding: MaterialStatePropertyAll<EdgeInsetsGeometry>(
+                                EdgeInsets.symmetric(horizontal: size.width * 0.39),
                               ),
                             ),
                           ),
@@ -208,22 +171,16 @@ class _SignInScreenState extends State<SignInScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            "Don't have an account?",
-                            style: TextStyle(color: Colors.grey),
-                          ),
+                          const Text("Don't have an account?", style: TextStyle(color: Colors.grey)),
                           TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (BuildContext context) =>
-                                            const SignUpScreen()));
-                              },
-                              child: const Text(
-                                "Sign up",
-                                style: TextStyle(color: Colors.blue),
-                              ))
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (BuildContext context) => const SignUpScreen()),
+                              );
+                            },
+                            child: const Text("Sign up", style: TextStyle(color: Colors.blue)),
+                          ),
                         ],
                       ),
                     ],
@@ -231,9 +188,9 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 Center(
                   child: Padding(
-                      padding: EdgeInsets.only(
-                          top: size.height * 0.02, bottom: size.height * 0.02),
-                      child: const Text("Or continue with")),
+                    padding: EdgeInsets.only(top: size.height * 0.02, bottom: size.height * 0.02),
+                    child: const Text("Or continue with"),
+                  ),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -241,47 +198,34 @@ class _SignInScreenState extends State<SignInScreen> {
                     ElevatedButton(
                       onPressed: null,
                       child: SizedBox(
-                          height: size.height * 0.06,
-                          width: size.width * 0.3,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/logo/google.png",
-                                height: size.height * 0.03,
-                              ),
-                              const Text(
-                                "  Google",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          )),
+                        height: size.height * 0.06,
+                        width: size.width * 0.3,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset("assets/logo/google.png", height: size.height * 0.03),
+                            const Text("  Google", style: TextStyle(color: Colors.black)),
+                          ],
+                        ),
+                      ),
                     ),
-                    SizedBox(
-                      height: size.height * 0.06,
-                      width: size.width * 0.05,
-                    ),
+                    SizedBox(height: size.height * 0.06, width: size.width * 0.05),
                     ElevatedButton(
                       onPressed: null,
                       child: SizedBox(
-                          height: size.height * 0.06,
-                          width: size.width * 0.3,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                "assets/logo/facebook.png",
-                                height: size.height * 0.03,
-                              ),
-                              const Text(
-                                "  Facebook",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            ],
-                          )),
+                        height: size.height * 0.06,
+                        width: size.width * 0.3,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset("assets/logo/facebook.png", height: size.height * 0.03),
+                            const Text("  Facebook", style: TextStyle(color: Colors.black)),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),

@@ -1,4 +1,3 @@
-
 // import 'package:fmecg_mobile/screens/history_screens/chart_result_python_screen.dart';
 // import 'package:fmecg_mobile/utils/utils.dart';
 // import 'package:file_picker/file_picker.dart';
@@ -85,7 +84,7 @@
 //             ),
 //           ),
 //           const SizedBox(height: 4),
-        
+
 //           Text("Python file path: ${pythonModulePath ?? "default"}"),
 //           const SizedBox(height: 10),
 //           Text("Txt file path: ${widget.txtPath}"),

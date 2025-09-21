@@ -4,12 +4,7 @@ class Session {
   String sessionToken;
   DateTime timeExpiration;
 
-  Session({
-    required this.id,
-    required this.userId,
-    required this.sessionToken,
-    required this.timeExpiration,
-  });
+  Session({required this.id, required this.userId, required this.sessionToken, required this.timeExpiration});
 
   factory Session.fromJson(Map<String, dynamic> json) => Session(
     id: json["id"],

@@ -40,6 +40,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       emit(AuthenticationFail());
     }
   }
+
   void _onCheckAutoLogin(CheckAutoLogin event, Emitter emit) async {
     try {
       emit(AuthenticationLoading());
@@ -47,9 +48,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       print(hasLoggedIn);
       if (hasLoggedIn) {
         final String dataLoginString = await SharedPreprerencesRepo.getDataUser();
-         print("dataLoginDecode: $dataLoginString 123123");
+        print("dataLoginDecode: $dataLoginString 123123");
         final Map dataLoginDecoded = jsonDecode(dataLoginString);
-       
+
         Provider.of<UserProvider>(Utils.globalContext!, listen: false).setDataUser(dataLoginDecoded);
         emit(AuthenticationSuccess());
       } else {

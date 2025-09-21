@@ -13,14 +13,13 @@ class ConversationMember {
     this.seen = false,
   });
 
-  factory ConversationMember.fromJson(Map<String, dynamic> json) =>
-    ConversationMember(
-      id: json["id"],
-      conversationId: json["conversation_id"],
-      statusNotification: json["status_notification"],
-      role: json["role"],
-      seen: json["seen"],
-    );
+  factory ConversationMember.fromJson(Map<String, dynamic> json) => ConversationMember(
+    id: json["id"],
+    conversationId: json["conversation_id"],
+    statusNotification: json["status_notification"],
+    role: json["role"],
+    seen: json["seen"],
+  );
 
   Map<String, dynamic> toJson() => {
     "id": id,
@@ -32,4 +31,5 @@ class ConversationMember {
 }
 
 enum StatusNotification { notify, silent }
+
 enum ConversationMemberRole { creator, member }

@@ -39,10 +39,8 @@ class Schedule {
       patientId: json['patient_id'],
       patientName: json['patient_name'],
       doctorName: json['doctor_name'],
-      startTime: DateTime.fromMillisecondsSinceEpoch(
-          json['schedule_start_time'] * 1000),
-      endTime:
-          DateTime.fromMillisecondsSinceEpoch(json['schedule_end_time'] * 1000),
+      startTime: DateTime.fromMillisecondsSinceEpoch(json['schedule_start_time'] * 1000),
+      endTime: DateTime.fromMillisecondsSinceEpoch(json['schedule_end_time'] * 1000),
       scheduleTypeId: json['schedule_type_id'],
       statusId: json['status_id'],
       scheduleResult: json['schedule_result'],
@@ -96,9 +94,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         api = '/schedules/patient-id';
       else
         api = '/schedules/doctor-id';
-      final response = await dioConfigInterceptor.get(
-        api,
-      );
+      final response = await dioConfigInterceptor.get(api);
       print("response: $response");
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
@@ -130,109 +126,99 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('My appointments',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              )),
-          centerTitle: true,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: IconButton(
-                icon: PhosphorIcon(
-                  PhosphorIcons.regular.plus,
-                ),
-                onPressed: () {
-                  showModalBottomSheet(
-                      context: context,
-                      //isScrollControlled: true,
-                      builder: (BuildContext context) {
-                        return const ScheduleAppointmentScreen();
-                      });
+      appBar: AppBar(
+        title: const Text('My appointments', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: PhosphorIcon(PhosphorIcons.regular.plus),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  //isScrollControlled: true,
+                  builder: (BuildContext context) {
+                    return const ScheduleAppointmentScreen();
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildCategorySection('Upcoming'),
+                const SizedBox(width: 20),
+                _buildCategorySection('Completed'),
+                const SizedBox(width: 20),
+                _buildCategorySection('Canceled'),
+              ],
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 7,
+                itemBuilder: (context, index) {
+                  DateTime currentDate = DateTime.now().add(Duration(days: index - _selectedDayIndex));
+                  String dayLabel = DateFormat('E').format(currentDate);
+                  String dateLabel = DateFormat('d').format(currentDate);
+                  return _buildDayButton(dayLabel, dateLabel, currentDate);
                 },
               ),
-            )
+            ),
+            Builder(
+              builder: (context) {
+                final filteredSchedules =
+                    _schedules.where((schedule) {
+                      if (_selectedCategory == 'Upcoming') {
+                        return schedule.startTime.isAfter(DateTime.now());
+                      } else if (_selectedCategory == 'Completed') {
+                        return schedule.startTime.isBefore(DateTime.now());
+                      } else {
+                        return true;
+                      }
+                    }).toList();
+
+                if (filteredSchedules.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'Không có lịch nào cả',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                    ),
+                  );
+                } else {
+                  return Column(
+                    children:
+                        filteredSchedules.map((schedule) {
+                          final startTime = schedule.startTime;
+                          final date = "${DateFormat('MMMM d').format(startTime)}";
+                          final time = "${DateFormat('h:mm a').format(startTime)}";
+                          return _buildAppointmentSection(
+                            schedule.id,
+                            schedule.patientName,
+                            schedule.doctorName,
+                            date,
+                            time,
+                            schedule.patientId,
+                          );
+                        }).toList(),
+                  );
+                }
+              },
+            ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildCategorySection('Upcoming'),
-                  const SizedBox(width: 20),
-                  _buildCategorySection('Completed'),
-                  const SizedBox(width: 20),
-                  _buildCategorySection('Canceled')
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 100,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 7,
-                  itemBuilder: (context, index) {
-                    DateTime currentDate = DateTime.now()
-                        .add(Duration(days: index - _selectedDayIndex));
-                    String dayLabel = DateFormat('E').format(currentDate);
-                    String dateLabel = DateFormat('d').format(currentDate);
-                    return _buildDayButton(dayLabel, dateLabel, currentDate);
-                  },
-                ),
-              ),
-              Builder(
-                builder: (context) {
-                  final filteredSchedules = _schedules.where((schedule) {
-                    if (_selectedCategory == 'Upcoming') {
-                      return schedule.startTime.isAfter(DateTime.now());
-                    } else if (_selectedCategory == 'Completed') {
-                      return schedule.startTime.isBefore(DateTime.now());
-                    } else {
-                      return true;
-                    }
-                  }).toList();
-
-                  if (filteredSchedules.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Không có lịch nào cả',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Column(
-                      children: filteredSchedules.map((schedule) {
-                        final startTime = schedule.startTime;
-                        final date =
-                            "${DateFormat('MMMM d').format(startTime)}";
-                        final time =
-                            "${DateFormat('h:mm a').format(startTime)}";
-                        return _buildAppointmentSection(
-                          schedule.id,
-                          schedule.patientName,
-                          schedule.doctorName,
-                          date,
-                          time,
-                          schedule.patientId,
-                        );
-                      }).toList(),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-        ));
+      ),
+    );
   }
 
   Widget _buildCategorySection(String category) {
@@ -244,16 +230,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           _selectedCategory = category;
         });
       },
-      child: Text(category,
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: isSelected ? Colors.black : Colors.grey)),
+      child: Text(
+        category,
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isSelected ? Colors.black : Colors.grey),
+      ),
     );
   }
 
   Widget _buildDayButton(String day, String date, DateTime dateTime) {
-    bool isSelected = _selectedDate.year == dateTime.year &&
+    bool isSelected =
+        _selectedDate.year == dateTime.year &&
         _selectedDate.month == dateTime.month &&
         _selectedDate.day == dateTime.day;
 
@@ -269,10 +255,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           children: [
             Text(
               day,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.blue[700] : Colors.black,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.blue[700] : Colors.black),
             ),
             const SizedBox(height: 5),
             Container(
@@ -285,10 +268,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               child: Center(
                 child: Text(
                   date,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Colors.black,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black),
                 ),
               ),
             ),
@@ -298,8 +278,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _buildAppointmentSection(String id, String name, String specialization,
-      Object date, String time, String patientId) {
+  Widget _buildAppointmentSection(
+    String id,
+    String name,
+    String specialization,
+    Object date,
+    String time,
+    String patientId,
+  ) {
     return GestureDetector(
       onTap: () async {
         try {
@@ -316,21 +302,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
             builder: (BuildContext context) {
-              return FractionallySizedBox(
-                heightFactor: 0.4,
-                child: _buildPatientInfoModal(patientInfo, id),
-              );
+              return FractionallySizedBox(heightFactor: 0.4, child: _buildPatientInfoModal(patientInfo, id));
             },
           );
         } catch (e) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to load patient info')),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load patient info')));
         }
       },
       child: Padding(
@@ -340,21 +319,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           children: [
             const SizedBox(height: 10),
             Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundImage:
-                          AssetImage('assets/images/doctor_image.png'),
-                    ),
-                    const SizedBox(
-                      width: 12,
-                    ),
+                    const CircleAvatar(radius: 50, backgroundImage: AssetImage('assets/images/doctor_image.png')),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,53 +334,40 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(name,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16)),
+                              Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                               PopupMenuButton(
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                      value: 1, child: Text("Edit")),
-                                  const PopupMenuItem(
-                                      value: 2, child: Text("Delete")),
-                                ],
+                                itemBuilder:
+                                    (context) => [
+                                      const PopupMenuItem(value: 1, child: Text("Edit")),
+                                      const PopupMenuItem(value: 2, child: Text("Delete")),
+                                    ],
                                 child: const Icon(Icons.more_vert),
-                              )
+                              ),
                             ],
                           ),
-                          Text(specialization,
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 117, 117, 117))),
-                          const SizedBox(
-                            height: 20,
-                          ),
+                          Text(specialization, style: const TextStyle(color: Color.fromARGB(255, 117, 117, 117))),
+                          const SizedBox(height: 20),
                           Row(
                             children: [
-                              Icon(Icons.calendar_today,
-                                  size: 16, color: Colors.grey[600]),
+                              Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
                               const SizedBox(width: 5),
                               Text(date as String),
                               const SizedBox(width: 15),
-                              Icon(Icons.access_time,
-                                  size: 16, color: Colors.grey[600]),
+                              Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
                               const SizedBox(width: 5),
                               Text(time),
                             ],
                           ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
             ),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                child: const Text("Urgent message"),
-              ),
+              child: ElevatedButton(onPressed: () {}, child: const Text("Urgent message")),
             ),
           ],
         ),
@@ -416,8 +375,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _buildPatientInfoModal(
-      Map<String, dynamic> patientInfo, String scheduleId) {
+  Widget _buildPatientInfoModal(Map<String, dynamic> patientInfo, String scheduleId) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final role = userProvider.user?.role ?? 1;
     return Padding(
@@ -425,14 +383,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Patient Information',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          const Text('Patient Information', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 2,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -441,21 +395,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        backgroundImage:
-                            AssetImage('assets/images/doctor_image.png'),
-                      ),
+                      const CircleAvatar(radius: 40, backgroundImage: AssetImage('assets/images/doctor_image.png')),
                       const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Name: ${patientInfo['username'] ?? 'N/A'}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -485,37 +432,27 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () async {
-                    TextEditingController diagnosisController =
-                        TextEditingController();
+                    TextEditingController diagnosisController = TextEditingController();
                     try {
                       showDialog(
                         context: context,
                         barrierDismissible: false,
                         builder: (BuildContext context) {
-                          return const Center(
-                              child: CircularProgressIndicator());
+                          return const Center(child: CircularProgressIndicator());
                         },
                       );
 
-                      final response = await dioConfigInterceptor.get(
-                        '/diagnosis/schedule/$scheduleId',
-                      );
+                      final response = await dioConfigInterceptor.get('/diagnosis/schedule/$scheduleId');
                       Navigator.pop(context);
 
                       if (response.statusCode == 200) {
                         final diagnosisData = response.data;
-                        diagnosisController.text =
-                            diagnosisData['information'] ?? '';
+                        diagnosisController.text = diagnosisData['information'] ?? '';
                       }
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          return _buildDiagnosisPopup(
-                            context,
-                            diagnosisController,
-                            scheduleId,
-                            'update',
-                          );
+                          return _buildDiagnosisPopup(context, diagnosisController, scheduleId, 'update');
                         },
                       );
                     } catch (e) {
@@ -524,8 +461,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
-                          return _buildDiagnosisPopup(
-                              context, diagnosisController, scheduleId, 'post');
+                          return _buildDiagnosisPopup(context, diagnosisController, scheduleId, 'post');
                         },
                       );
                     }
@@ -538,27 +474,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      final DateTime? result =
-                          await showModalBottomSheet<DateTime>(
+                      final DateTime? result = await showModalBottomSheet<DateTime>(
                         context: context,
                         isScrollControlled: true,
                         shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(16)),
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                         ),
                         builder: (BuildContext context) {
-                          return SchedulePickByDoctor(
-                            patientId: patientInfo['id'],
-                          );
+                          return SchedulePickByDoctor(patientId: patientInfo['id']);
                         },
                       );
 
                       if (result != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('Lịch tái khám đã được tạo: $result')),
-                        );
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Lịch tái khám đã được tạo: $result')));
                       }
                     },
                     child: const Text('Tạo lịch tái khám'),
@@ -585,8 +515,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (birthTimestamp == null) {
       return 'N/A';
     }
-    final birthDate =
-        DateTime.fromMillisecondsSinceEpoch(birthTimestamp * 1000);
+    final birthDate = DateTime.fromMillisecondsSinceEpoch(birthTimestamp * 1000);
     return DateFormat('MMMM d, yyyy').format(birthDate);
   }
 
@@ -604,18 +533,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Chẩn đoán:',
-                  style: TextStyle(fontSize: 16),
-                ),
+                const Text('Chẩn đoán:', style: TextStyle(fontSize: 16)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: diagnosisController,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Nhập chẩn đoán...',
-                  ),
+                  decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Nhập chẩn đoán...'),
                 ),
                 const SizedBox(height: 10),
               ],
@@ -633,11 +556,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 final updatedDiagnosis = diagnosisController.text;
 
                 if (updatedDiagnosis.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Chẩn đoán không được để trống'),
-                    ),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Chẩn đoán không được để trống')));
                   return;
                 }
 
@@ -650,14 +571,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   }
                   final updateResponse = await dioConfigInterceptor.post(
                     api,
-                    data: jsonEncode({
-                      'schedule_id': scheduleId,
-                      'information': updatedDiagnosis,
-                    }),
+                    data: jsonEncode({'schedule_id': scheduleId, 'information': updatedDiagnosis}),
                   );
 
-                  if (updateResponse.statusCode == 200 ||
-                      updateResponse.statusCode == 201) {
+                  if (updateResponse.statusCode == 200 || updateResponse.statusCode == 201) {
                     showDialog(
                       context: context,
                       barrierDismissible: false,
@@ -684,8 +601,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       builder: (BuildContext context) {
                         return AlertDialog(
                           title: const Text('Lỗi'),
-                          content: Text(
-                              'Không thể cập nhật chẩn đoán.\nLỗi: ${updateResponse.statusMessage}'),
+                          content: Text('Không thể cập nhật chẩn đoán.\nLỗi: ${updateResponse.statusMessage}'),
                           actions: [
                             TextButton(
                               onPressed: () {
@@ -699,11 +615,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     );
                   }
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Đã xảy ra lỗi: $e'),
-                    ),
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã xảy ra lỗi: $e')));
                 }
               },
               child: const Text('Update'),

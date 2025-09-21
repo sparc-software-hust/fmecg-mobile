@@ -8,7 +8,7 @@ class OneChart extends StatefulWidget {
     required this.chartData,
     this.legendTitle = "",
     required this.crosshairBehavior,
-    this.xCount = 500
+    this.xCount = 500,
   });
 
   final Function(ChartSeriesController) setChartSeriesController;
@@ -22,7 +22,6 @@ class OneChart extends StatefulWidget {
 }
 
 class _OneChartState extends State<OneChart> {
-
   @override
   Widget build(BuildContext context) {
     return SfCartesianChart(
@@ -44,7 +43,7 @@ class _OneChartState extends State<OneChart> {
         edgeLabelPlacement: EdgeLabelPlacement.none,
         minorGridLines: const MinorGridLines(width: 0, color: Color(0xFF7a935a)),
         majorGridLines: const MajorGridLines(width: 1, color: Color(0xFF7a935a)),
-        majorTickLines: const MajorTickLines(size: 5, width: 2, color: Color(0xFF7a935a))
+        majorTickLines: const MajorTickLines(size: 5, width: 2, color: Color(0xFF7a935a)),
       ),
       primaryYAxis: const NumericAxis(
         labelStyle: TextStyle(color: Colors.white),
@@ -67,9 +66,9 @@ class _OneChartState extends State<OneChart> {
           yValueMapper: (ChartData d, _) => d.y,
           animationDuration: 0,
           width: 2,
-          color: const Color(0xFF2EC35D)
-        )
-      ]
+          color: const Color(0xFF2EC35D),
+        ),
+      ],
     );
   }
 }

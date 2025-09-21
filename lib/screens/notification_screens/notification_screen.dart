@@ -65,9 +65,7 @@ class _MyWidgetState extends State<NotificationScreen> {
       final response = await dioConfigInterceptor.get('/notification/get');
 
       setState(() {
-        _allNotifications = (response.data as List)
-            .map((notification) => Notification.fromJson(notification))
-            .toList();
+        _allNotifications = (response.data as List).map((notification) => Notification.fromJson(notification)).toList();
         _filteredNotifications = _allNotifications;
         isLoading = false;
       });
@@ -88,87 +86,67 @@ class _MyWidgetState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Thông báo'),
-      ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : _filteredNotifications.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Không có thông báo nào.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
+      appBar: AppBar(title: const Text('Thông báo')),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _filteredNotifications.isEmpty
+              ? const Center(child: Text('Không có thông báo nào.', style: TextStyle(fontSize: 16)))
               : ListView.builder(
-                  itemCount: _filteredNotifications.length,
-                  itemBuilder: (context, index) {
-                    final notification = _filteredNotifications[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                itemCount: _filteredNotifications.length,
+                itemBuilder: (context, index) {
+                  final notification = _filteredNotifications[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: ListTile(
+                      leading: Icon(
+                        notification.status == 1 ? Icons.notifications : Icons.notifications_active,
+                        color:
+                            notification.status == 1
+                                ? Colors.green
+                                : notification.status == 2
+                                ? Colors.blueAccent
+                                : Colors.red,
                       ),
-                      child: ListTile(
-                        leading: Icon(
-                          notification.status == 1
-                              ? Icons.notifications
-                              : Icons.notifications_active,
-                          color: notification.status == 1
-                              ? Colors.green
-                              : notification.status == 2
-                                  ? Colors.blueAccent
-                                  : Colors.red,
-                        ),
-                        title: Text(
-                          'Loại: ${notification.type}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                      title: Text('Loại: ${notification.type}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Bệnh nhân: ${notification.patientName}'),
+                          Text('Bác sĩ: ${notification.doctorName}'),
+                          Text(
+                            'Thời gian: ${DateTime.fromMillisecondsSinceEpoch(notification.scheduleStartTime * 1000)}',
                           ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Bệnh nhân: ${notification.patientName}'),
-                            Text('Bác sĩ: ${notification.doctorName}'),
-                            Text(
-                              'Thời gian: ${DateTime.fromMillisecondsSinceEpoch(notification.scheduleStartTime * 1000)}',
-                            ),
-                            Text(
-                              notification.type == 0
-                                  ? 'Description: Bạn đã đặt lịch với bác sĩ vào ngày: ${DateTime.fromMillisecondsSinceEpoch(notification.scheduleStartTime * 1000)}'
-                                  : notification.status == 1
-                                      ? 'Description: Bác sĩ đã chấp nhận yêu cầu.'
-                                      : notification.status == 3
-                                          ? 'Description: Bác sĩ đã từ chối yêu cầu.'
-                                          : 'Description: Bác sĩ đã đặt lịch cho bạn vào ngày: ${DateTime.fromMillisecondsSinceEpoch(notification.scheduleStartTime * 1000)}',
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Icon(
-                          notification.status == 1
-                              ? Icons.check_circle
-                              : Icons.circle,
-                          color: notification.status == 1
-                              ? Colors.green
-                              : notification.status == 3
-                                  ? Colors.red
-                                  : Colors.blue,
-                        ),
-                        onTap: () {
-                          // setState(() {
-                          //   notification.isSeen = true;
-                          // });
-                        },
+                          Text(
+                            notification.type == 0
+                                ? 'Description: Bạn đã đặt lịch với bác sĩ vào ngày: ${DateTime.fromMillisecondsSinceEpoch(notification.scheduleStartTime * 1000)}'
+                                : notification.status == 1
+                                ? 'Description: Bác sĩ đã chấp nhận yêu cầu.'
+                                : notification.status == 3
+                                ? 'Description: Bác sĩ đã từ chối yêu cầu.'
+                                : 'Description: Bác sĩ đã đặt lịch cho bạn vào ngày: ${DateTime.fromMillisecondsSinceEpoch(notification.scheduleStartTime * 1000)}',
+                            style: const TextStyle(fontStyle: FontStyle.italic),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                      trailing: Icon(
+                        notification.status == 1 ? Icons.check_circle : Icons.circle,
+                        color:
+                            notification.status == 1
+                                ? Colors.green
+                                : notification.status == 3
+                                ? Colors.red
+                                : Colors.blue,
+                      ),
+                      onTap: () {
+                        // setState(() {
+                        //   notification.isSeen = true;
+                        // });
+                      },
+                    ),
+                  );
+                },
+              ),
     );
   }
 }

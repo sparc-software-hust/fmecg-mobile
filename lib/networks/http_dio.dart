@@ -8,54 +8,60 @@ import 'package:shared_preferences/shared_preferences.dart';
 // với request cần auth: sử dụng dioConfigInterceptor.post/get/put/delete
 // với request không cần auth: sử dụng Dio().post/get/put/delete
 
-final dioConfigInterceptor = Dio()
-  ..options.baseUrl = Utils.apiUrl
-  ..options.connectTimeout = const Duration(seconds: 8)
-  ..options.receiveTimeout = const Duration(seconds: 20)
-  ..options.sendTimeout = const Duration(seconds: 15)
-  ..interceptors.add(tokenInterceptor);
+final dioConfigInterceptor =
+    Dio()
+      ..options.baseUrl = Utils.apiUrl
+      ..options.connectTimeout = const Duration(seconds: 8)
+      ..options.receiveTimeout = const Duration(seconds: 20)
+      ..options.sendTimeout = const Duration(seconds: 15)
+      ..interceptors.add(tokenInterceptor);
 
-final Interceptor tokenInterceptor =
-    QueuedInterceptorsWrapper(onRequest: (options, handler) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final String? accessToken = prefs.getString('access_token');
-  final String? refreshToken = prefs.getString('refresh_token');
-  final String? accessExp = prefs.getString('expiryDate');
-  if (accessToken == null || accessExp == null || refreshToken == null) {
-    await _logout();
-    return handler.next(options);
-  }
-
-  final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  final int expiryTimestamp = int.tryParse(accessExp) ?? 0;
-
-  final bool isExpired = now > expiryTimestamp;
-  print("isExpired: $expiryTimestamp, $isExpired");
-  if (isExpired) {
-    final retryDio = Dio()
-      ..options.baseUrl = options.baseUrl
-      ..options.headers['Authorization'] = "Bearer $refreshToken";
-    final Response res = await retryDio.post(
-        "http://103.200.20.59:3003/auth/refresh-token",
-        data: {"refresh_token": refreshToken});
-    if (res.statusCode != 200) {
+final Interceptor tokenInterceptor = QueuedInterceptorsWrapper(
+  onRequest: (options, handler) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? accessToken = prefs.getString('access_token');
+    final String? refreshToken = prefs.getString('refresh_token');
+    final String? accessExp = prefs.getString('expiryDate');
+    if (accessToken == null || accessExp == null || refreshToken == null) {
       await _logout();
-      return;
+      return handler.next(options);
+    }
+
+    final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final int expiryTimestamp = int.tryParse(accessExp) ?? 0;
+
+    final bool isExpired = now > expiryTimestamp;
+    print("isExpired: $expiryTimestamp, $isExpired");
+    if (isExpired) {
+      final retryDio =
+          Dio()
+            ..options.baseUrl = options.baseUrl
+            ..options.headers['Authorization'] = "Bearer $refreshToken";
+      final Response res = await retryDio.post(
+        "http://103.200.20.59:3003/auth/refresh-token",
+        data: {"refresh_token": refreshToken},
+      );
+      if (res.statusCode != 200) {
+        await _logout();
+        return;
+      } else {
+        //await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
+        final String accessToken = res.data["access_token"];
+        await _saveTokenData(res.data);
+        options.headers['Authorization'] = "Bearer $accessToken";
+      }
     } else {
-      //await AuthRepository.saveTokenDataIntoPrefs(res.data["data"]);
-      final String accessToken = res.data["access_token"];
-      await _saveTokenData(res.data);
       options.headers['Authorization'] = "Bearer $accessToken";
     }
-  } else {
-    options.headers['Authorization'] = "Bearer $accessToken";
-  }
-  return handler.next(options);
-}, onResponse: (response, handler) async {
-  return handler.next(response);
-}, onError: (error, handler) {
-  return handler.next(error);
-});
+    return handler.next(options);
+  },
+  onResponse: (response, handler) async {
+    return handler.next(response);
+  },
+  onError: (error, handler) {
+    return handler.next(error);
+  },
+);
 
 Future<void> _logout() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();

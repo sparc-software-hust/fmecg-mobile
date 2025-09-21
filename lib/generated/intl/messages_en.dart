@@ -24,29 +24,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-    "availableDevices": MessageLookupByLibrary.simpleMessage(
-      "Available devices",
-    ),
+    "availableDevices": MessageLookupByLibrary.simpleMessage("Available devices"),
     "bloodPressure": MessageLookupByLibrary.simpleMessage("Blood pressure"),
     "bluetoothStatusDes": m0,
     "chat": MessageLookupByLibrary.simpleMessage("Chat"),
     "connect": MessageLookupByLibrary.simpleMessage("Connect"),
     "connected": MessageLookupByLibrary.simpleMessage("Connected"),
     "dataProcessed": MessageLookupByLibrary.simpleMessage("Data processed"),
-    "dataProcessingDes": MessageLookupByLibrary.simpleMessage(
-      "Data is being processed by Python",
-    ),
-    "devicesFoundDes": MessageLookupByLibrary.simpleMessage(
-      "All devices found!",
-    ),
+    "dataProcessingDes": MessageLookupByLibrary.simpleMessage("Data is being processed by Python"),
+    "devicesFoundDes": MessageLookupByLibrary.simpleMessage("All devices found!"),
     "diastolic": MessageLookupByLibrary.simpleMessage("diastolic"),
     "disconnect": MessageLookupByLibrary.simpleMessage("Disconnect"),
     "edit": MessageLookupByLibrary.simpleMessage("Edit"),
     "enter": MessageLookupByLibrary.simpleMessage("Enter"),
     "extremelyHigh": MessageLookupByLibrary.simpleMessage("Extremely high"),
-    "familyMemberPhone": MessageLookupByLibrary.simpleMessage(
-      "Family member phone number",
-    ),
+    "familyMemberPhone": MessageLookupByLibrary.simpleMessage("Family member phone number"),
     "find": MessageLookupByLibrary.simpleMessage("Find"),
     "general": MessageLookupByLibrary.simpleMessage("General"),
     "heartbeat": MessageLookupByLibrary.simpleMessage("Heartbeat"),
@@ -66,30 +58,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "reset": MessageLookupByLibrary.simpleMessage("Reset"),
     "result": MessageLookupByLibrary.simpleMessage("Result"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
-    "saveAndCalculate": MessageLookupByLibrary.simpleMessage(
-      "Save and calculate",
-    ),
-    "saveDataToStorage": MessageLookupByLibrary.simpleMessage(
-      "Save data to storage",
-    ),
-    "scanningDes": MessageLookupByLibrary.simpleMessage(
-      "Let\'s connect your phone to hardware using Bluetooth",
-    ),
+    "saveAndCalculate": MessageLookupByLibrary.simpleMessage("Save and calculate"),
+    "saveDataToStorage": MessageLookupByLibrary.simpleMessage("Save data to storage"),
+    "scanningDes": MessageLookupByLibrary.simpleMessage("Let\'s connect your phone to hardware using Bluetooth"),
     "scanningDevices": MessageLookupByLibrary.simpleMessage("Scanning devices"),
     "signUp": MessageLookupByLibrary.simpleMessage("Sign up"),
-    "somethingWentWrong": MessageLookupByLibrary.simpleMessage(
-      "Something went wrong",
-    ),
+    "somethingWentWrong": MessageLookupByLibrary.simpleMessage("Something went wrong"),
     "status": MessageLookupByLibrary.simpleMessage("Status"),
     "stop": MessageLookupByLibrary.simpleMessage("Stop"),
     "systolic": MessageLookupByLibrary.simpleMessage("Systolic"),
     "turnOn": MessageLookupByLibrary.simpleMessage("Turn on"),
     "variability": MessageLookupByLibrary.simpleMessage("Variability"),
-    "welcomeSentence": MessageLookupByLibrary.simpleMessage(
-      "Welcome to my app,",
-    ),
-    "yourBloodPressureChart": MessageLookupByLibrary.simpleMessage(
-      "Your blood pressure chart",
-    ),
+    "welcomeSentence": MessageLookupByLibrary.simpleMessage("Welcome to my app,"),
+    "yourBloodPressureChart": MessageLookupByLibrary.simpleMessage("Your blood pressure chart"),
   };
 }

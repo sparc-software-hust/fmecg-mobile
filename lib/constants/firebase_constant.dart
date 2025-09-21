@@ -1,3 +1,1 @@
-class FirebaseConstant {
-  
-}
+class FirebaseConstant {}

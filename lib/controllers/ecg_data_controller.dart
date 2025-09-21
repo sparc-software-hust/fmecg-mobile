@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
-
 class ECGDataController {
   static const double referenceVoltage = 4.5;
   static const int channelsLength = 6;
   static const List<int> channelsNumber = [1, 2, 3, 4];
+
   /// Explanation for handling data ECG
 
   /// bytes (1 row data) variable: 1 list int include 16 numbers corresponding to 16 bytes (uint8).
@@ -28,7 +28,7 @@ class ECGDataController {
 
   static List<int> getStatusBytes(List<int> bytes) {
     if (bytes.length >= 3) {
-      final List<int> statusBytes = bytes.sublist(0,3);
+      final List<int> statusBytes = bytes.sublist(0, 3);
       return statusBytes;
     } else {
       // error data
@@ -38,7 +38,7 @@ class ECGDataController {
 
   static List<int> getChannelsBytes(List<int> bytes) {
     print('bytes length: ${bytes.length}');
-    if (bytes.length < 12) return bytes.sublist(3, bytes.length); 
+    if (bytes.length < 12) return bytes.sublist(3, bytes.length);
     if (bytes.length == 16) return bytes.sublist(3, 15);
     if (bytes.length == 24) return bytes.sublist(3, 21); //do bytes thu 21, 22 khong dung
     return List.generate(12, (_) => -1);
@@ -60,13 +60,13 @@ class ECGDataController {
     final int start = offset * 3;
     return bytes.sublist(start, start + 3);
     // switch (order) {
-    //   case 1: // first channel 
+    //   case 1: // first channel
     //     List<int> firstChannel = bytes.sublist(0,3);
     //     return firstChannel;
-    //   case 2: // second channel 
+    //   case 2: // second channel
     //     List<int> secondChannel = bytes.sublist(3,6);
     //     return secondChannel;
-    //   case 3: // third channel 
+    //   case 3: // third channel
     //     List<int> thirdChannel = bytes.sublist(6,9);
     //     return thirdChannel;
     //   case 4: // fourth channel (test channel)
@@ -95,7 +95,8 @@ class ECGDataController {
 
   // tính điện áp để vẽ ra biểu đồ
   static List calculateDataPointToShow(List row) {
-    List dataPoints = row.map((decimalValue) => (decimalValue * referenceVoltage) / (math.pow(2, 23) - 1).toDouble()).toList();
+    List dataPoints =
+        row.map((decimalValue) => (decimalValue * referenceVoltage) / (math.pow(2, 23) - 1).toDouble()).toList();
     return dataPoints;
   }
 
@@ -145,7 +146,5 @@ class ECGDataController {
   //   return dataSeperated;
   // }
 
-  static verifyPacketLength(List<int> packet) {
-
-  }
+  static verifyPacketLength(List<int> packet) {}
 }
