@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
-import 'package:fmecg_mobile/controllers/ecg_data_controller.dart';
+import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart' hide EdgeLabelPlacement;
@@ -19,35 +19,41 @@ class LiveChartSample extends StatefulWidget {
 
 class _LiveChartSampleState extends State<LiveChartSample> {
   Timer? timer;
-  List<ChartData> chartDataPPG = [];
-  List<ChartData> chartDataPCG = [];
+  List<List<ChartData>> channelChartData = [];
+  List<ChartSeriesController?> chartSeriesControllers = [];
+  List<CrosshairBehavior> crosshairBehaviors = [];
+  
   late int count;
-  ChartSeriesController? _chartSeriesControllerPPG;
-  ChartSeriesController? _chartSeriesControllerPCG;
-  CrosshairBehavior crosshairBehavior = CrosshairBehavior(
-    enable: true,
-    lineType: CrosshairLineType.vertical,
-    activationMode: ActivationMode.none,
-    lineColor: Color(0xFF010101),
-    lineWidth: 2,
-  );
-
-  CrosshairBehavior crosshairBehavior2 = CrosshairBehavior(
-    enable: true,
-    lineType: CrosshairLineType.vertical,
-    activationMode: ActivationMode.none,
-    lineColor: Colors.blue,
-    lineWidth: 2,
-  );
   int countX = 500;
+  int numberOfChartsToShow = 2;
+  double timeWindowSeconds = 10.0;
+  double samplingRateHz = 250.0; // Assuming 250 Hz sampling rate
+  
   List samples = [];
   bool isButtonEndMeasurement = true;
+  DateTime? startTime;
+
+  // Chart colors for different channels
+  final List<Color> chartColors = [
+    const Color(0XFF7BB4EA), // Blue
+    const Color(0xFFE11239), // Red
+    const Color(0xFF32CD32), // Green
+    const Color(0xFFFF8C00), // Orange
+    const Color(0xFF9932CC), // Purple
+    const Color(0xFFFF1493), // Pink
+  ];
+
+  // Channel names
+  final List<String> channelNames = [
+    "Channel 1", "Channel 2", "Channel 3", 
+    "Channel 4", "Channel 5", "Channel 6"
+  ];
 
   @override
   void initState() {
     super.initState();
     count = 0;
-    // _startUpdateData();
+    _initializeChartData();
   }
 
   @override
@@ -57,19 +63,103 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     _clearChartData();
   }
 
+  void _initializeChartData() {
+    channelChartData.clear();
+    chartSeriesControllers.clear();
+    crosshairBehaviors.clear();
+    
+    for (int i = 0; i < 6; i++) {
+      channelChartData.add([]);
+      chartSeriesControllers.add(null);
+      crosshairBehaviors.add(CrosshairBehavior(
+        enable: true,
+        lineType: CrosshairLineType.vertical,
+        activationMode: ActivationMode.none,
+        lineColor: chartColors[i],
+        lineWidth: 2,
+      ));
+    }
+  }
+
   _clearChartData({bool cancelTimer = true}) {
     if (cancelTimer) {
       timer?.cancel();
     }
-    chartDataPPG.clear();
-    chartDataPCG.clear();
+    
+    for (int i = 0; i < channelChartData.length; i++) {
+      channelChartData[i].clear();
+    }
+    
     samples = [];
     count = 0;
+    startTime = null;
     setState(() {});
   }
 
   _startUpdateData() {
+    startTime = DateTime.now();
     timer = Timer.periodic(const Duration(milliseconds: 4), _updateDataSource);
+  }
+
+  double _getCurrentTimeInSeconds() {
+    if (startTime == null) return 0.0;
+    return DateTime.now().difference(startTime!).inMilliseconds / 1000.0;
+  }
+
+  void _processBluetoothData(List<int> bluetoothPacket) {
+    try {
+      // Use the ECGPacketParser to process the real Bluetooth data
+      List<double> channelDecimalValues = EcgPacketParser.handleDataRowFromBluetooth(bluetoothPacket);
+      List<double> channelVoltageValues = EcgPacketParser.calculateDataPointToShow(channelDecimalValues);
+      
+      // Store the sample data
+      samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
+      
+      // Update chart data for each channel
+      _updateChartDataWithRealData(channelVoltageValues);
+      
+    } catch (e) {
+      print('Error processing Bluetooth data: $e');
+      // Fallback to demo data if there's an error
+      _updateWithDemoData();
+    }
+  }
+
+  void _updateChartDataWithRealData(List<double> channelVoltageValues) {
+    final double currentTime = _getCurrentTimeInSeconds();
+    final double maxTimeWindow = timeWindowSeconds;
+    
+    for (int channelIndex = 0; channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length; channelIndex++) {
+      ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+      
+      // Add new data point
+      channelChartData[channelIndex].add(newData);
+      
+      // Remove old data points outside the time window
+      channelChartData[channelIndex].removeWhere((data) => 
+        (currentTime - data.x) > maxTimeWindow);
+      
+      // Update chart controller
+      if (chartSeriesControllers[channelIndex] != null) {
+        chartSeriesControllers[channelIndex]!.updateDataSource(
+          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1]
+        );
+      }
+      
+      // Update crosshair
+      crosshairBehaviors[channelIndex].showByValue(currentTime, channelVoltageValues[channelIndex]);
+    }
+  }
+
+  void _updateWithDemoData() {
+    // Generate fake Bluetooth packet for demo
+    List<int> fakeBluetoothPacket = List.generate(22, (index) {
+      if (index < 3) return _getRandomInt(192, 194); // Status bytes
+      if (index >= 21) return count % 256; // Count byte
+      return _getRandomInt(1, 255); // Data bytes
+    });
+    
+    _processBluetoothData(fakeBluetoothPacket);
   }
 
   @override
@@ -80,85 +170,93 @@ class _LiveChartSampleState extends State<LiveChartSample> {
 
     return Column(
       children: [
-        SizedBox(
-          width: width - 50,
-          height: 300,
-          child: OneChart(
-            legendTitle: "PPG",
-            crosshairBehavior: crosshairBehavior,
-            chartData: chartDataPPG,
-            xCount: countX,
-            setChartSeriesController: (ChartSeriesController controller) {
-              _chartSeriesControllerPPG = controller;
-            },
+        // Number of charts selector
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const Text("Number of charts:"),
+              DropdownButton<int>(
+                value: numberOfChartsToShow,
+                items: List.generate(6, (index) => DropdownMenuItem(
+                  value: index + 1,
+                  child: Text("${index + 1} Chart${index == 0 ? '' : 's'}"),
+                )),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      numberOfChartsToShow = value;
+                      _clearChartData(cancelTimer: false);
+                    });
+                  }
+                },
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 220,
-          width: width - 50,
-          child: OneChart(
-            legendTitle: "PCG",
-            crosshairBehavior: crosshairBehavior2,
-            chartData: chartDataPCG,
-            xCount: countX,
-            setChartSeriesController: (ChartSeriesController controller) {
-              _chartSeriesControllerPCG = controller;
-            },
+        
+        // Time window selector
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const Text("Time window:"),
+              DropdownButton<double>(
+                value: timeWindowSeconds,
+                items: [5.0, 10.0, 15.0, 20.0, 30.0].map((seconds) => 
+                  DropdownMenuItem(
+                    value: seconds,
+                    child: Text("${seconds.toInt()}s"),
+                  )
+                ).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      timeWindowSeconds = value;
+                      _clearChartData(cancelTimer: false);
+                    });
+                  }
+                },
+              ),
+            ],
           ),
         ),
 
-        SfSlider(
-          min: 50,
-          max: 500,
-          stepSize: 50,
-          value: countX,
-          interval: 50,
-          showTicks: true,
-          showLabels: true,
-          activeColor: const Color(0xFF4f6bff),
-          enableTooltip: true,
-          minorTicksPerInterval: 0,
-          onChanged: (dynamic value) {
-            _clearChartData(cancelTimer: false);
-            setState(() {
-              countX = value.toInt();
-            });
-          },
+        // Charts
+        ...List.generate(numberOfChartsToShow, (index) => 
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: SizedBox(
+              width: width - 50,
+              height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
+              child: _buildECGChart(
+                channelIndex: index,
+                legendTitle: channelNames[index],
+                chartColor: chartColors[index],
+              ),
+            ),
+          ),
         ),
+
+        // Control buttons
         Align(
           alignment: Alignment.center,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // ElevatedButton(
-              //   onPressed: () {
-              //     if (widget.callBackToPreview != null) {
-              //       widget.callBackToPreview!.call();
-              //     }
-              //   },
-              //   child: const Text('Quay lại')
-              // ),
               ElevatedButton(
                 onPressed: () {
                   _startUpdateData();
                 },
-                child: const Text('Bắt đầu test'),
+                child: const Text('Start Test'),
               ),
               ElevatedButton(
                 onPressed: () async {
                   _clearChartData();
-                  // if (isButtonEndMeasurement) {
-                  //   _clearChartData();
-                  //   // await _saveDataAndSendToServer();
-                  // } else {
-                  //   setState(() {
-                  //     _startUpdateData();
-                  //     isButtonEndMeasurement = true;
-                  //   });
-                  // }
                 },
-                child: Text(!isButtonEndMeasurement ? "Start Demo Chart" : "Kết thúc đo"),
+                child: const Text('Stop & Clear'),
               ),
             ],
           ),
@@ -167,96 +265,54 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     );
   }
 
-  SfCartesianChart _buildLiveLineChart() {
+  Widget _buildECGChart({
+    required int channelIndex,
+    required String legendTitle,
+    required Color chartColor,
+  }) {
     return SfCartesianChart(
-      // title: ChartTitle(
-      //   text: "BIỂU ĐỒ HUYẾT ÁP REAL-TIME",
-      //   alignment: ChartAlignment.center,
-      // ),
-      crosshairBehavior: crosshairBehavior,
+      title: ChartTitle(
+        text: legendTitle,
+        alignment: ChartAlignment.center,
+      ),
+      crosshairBehavior: crosshairBehaviors[channelIndex],
       plotAreaBorderWidth: 0,
       primaryXAxis: NumericAxis(
-        minimum: 0,
-        maximum: countX.toDouble(),
-        interval: 50,
+        title: const AxisTitle(text: 'Time (seconds)'),
+        minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
+        maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
+        interval: timeWindowSeconds / 5, // 5 intervals on x-axis
         interactiveTooltip: const InteractiveTooltip(enable: false),
         edgeLabelPlacement: EdgeLabelPlacement.shift,
+        majorGridLines: const MajorGridLines(width: 1),
       ),
-
       primaryYAxis: const NumericAxis(
+        title: AxisTitle(text: 'Voltage (V)'),
         interactiveTooltip: InteractiveTooltip(enable: false),
         edgeLabelPlacement: EdgeLabelPlacement.shift,
         majorGridLines: MajorGridLines(width: 1),
       ),
-      legend: const Legend(isVisible: true, isResponsive: true, position: LegendPosition.top),
       series: [
-        LineSeries<ChartData, int>(
+        LineSeries<ChartData, double>(
           enableTooltip: false,
           onRendererCreated: (ChartSeriesController controller) {
-            _chartSeriesControllerPPG = controller;
+            chartSeriesControllers[channelIndex] = controller;
           },
-          legendItemText: "PPG",
-          dataSource: chartDataPPG,
-          color: const Color(0XFF7BB4EA),
-          xValueMapper: (ChartData sales, _) => sales.x,
-          yValueMapper: (ChartData sales, _) => sales.y,
-          // animationDuration: 0,
-        ),
-      ],
-    );
-  }
-
-  SfCartesianChart _buildLiveLineChart1() {
-    return SfCartesianChart(
-      title: const ChartTitle(alignment: ChartAlignment.center),
-      // enableAxisAnimation: true,
-      plotAreaBorderWidth: 0,
-      primaryXAxis: const NumericAxis(edgeLabelPlacement: EdgeLabelPlacement.shift),
-      primaryYAxis: const NumericAxis(
-        edgeLabelPlacement: EdgeLabelPlacement.shift,
-        majorGridLines: MajorGridLines(width: 1),
-      ),
-      legend: const Legend(isVisible: true, isResponsive: true, position: LegendPosition.top),
-      series: [
-        LineSeries<ChartData, int>(
-          onRendererCreated: (ChartSeriesController controller) {
-            _chartSeriesControllerPCG = controller;
-          },
-          legendItemText: "PCG",
-          dataSource: chartDataPCG,
-          color: const Color(0xFFE11239),
-          xValueMapper: (ChartData d, _) => d.x,
-          yValueMapper: (ChartData d, _) => d.y,
-          // animationDuration: 0,
+          legendItemText: legendTitle,
+          dataSource: channelChartData[channelIndex],
+          color: chartColor,
+          xValueMapper: (ChartData data, _) => data.x,
+          yValueMapper: (ChartData data, _) => data.y,
+          width: 2,
         ),
       ],
     );
   }
 
   void _updateDataSource(Timer timer) {
-    List<int> fakeRows = List.generate(16, (_) => _getRandomInt(1, 244));
-    List<double> dataChannelsToSave = ECGDataController.handleDataRowFromBluetooth(fakeRows);
-    List dataChannelsToShowOnChart = ECGDataController.calculateDataPointToShow(dataChannelsToSave);
-    samples.add([0, 0, 0, 0, 0, 0, ...dataChannelsToSave]);
-
-    final int index = count % countX;
-    ChartData newDataPPG = ChartData(index, (dataChannelsToShowOnChart[0]).toDouble());
-    ChartData newDataPCG = ChartData(index, (dataChannelsToShowOnChart[1]).toDouble());
-
-    if (chartDataPPG.length == countX) {
-      crosshairBehavior.showByIndex(index);
-      crosshairBehavior2.showByIndex(index);
-      chartDataPPG[index] = newDataPPG;
-      chartDataPCG[index] = newDataPCG;
-
-      _chartSeriesControllerPPG?.updateDataSource(updatedDataIndexes: <int>[index]);
-      _chartSeriesControllerPCG?.updateDataSource(updatedDataIndexes: <int>[index]);
-    } else {
-      chartDataPPG.add(newDataPPG);
-      chartDataPCG.add(newDataPCG);
-      _chartSeriesControllerPPG?.updateDataSource(addedDataIndexes: <int>[chartDataPPG.length - 1]);
-      _chartSeriesControllerPCG?.updateDataSource(addedDataIndexes: <int>[chartDataPCG.length - 1]);
-    }
+    // For demo purposes, use fake data
+    // In real implementation, this would be called with actual Bluetooth data
+    _updateWithDemoData();
     count = count + 1;
   }
 
