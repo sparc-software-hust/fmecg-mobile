@@ -6,7 +6,6 @@ import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart' hide EdgeLabelPlacement;
 
 class LiveChartSample extends StatefulWidget {
   const LiveChartSample({Key? key, this.fileToSave, this.callBackToPreview}) : super(key: key);
@@ -33,14 +32,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   bool isButtonEndMeasurement = true;
   DateTime? startTime;
 
-  // Chart colors for different channels
+  // ECG-style chart colors for different channels
   final List<Color> chartColors = [
-    const Color(0XFF7BB4EA), // Blue
-    const Color(0xFFE11239), // Red
-    const Color(0xFF32CD32), // Green
-    const Color(0xFFFF8C00), // Orange
-    const Color(0xFF9932CC), // Purple
-    const Color(0xFFFF1493), // Pink
+    const Color(0xFF00FF41), // Bright green - classic ECG monitor color
+    const Color(0xFF00D4FF), // Cyan blue
+    const Color(0xFFFF6B35), // Orange red
+    const Color(0xFFFFD23F), // Golden yellow
+    const Color(0xFFFF3366), // Pink red
+    const Color(0xFF9B59B6), // Purple
   ];
 
   // Channel names
@@ -163,141 +162,287 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     final Orientation orientation = MediaQuery.of(context).orientation;
     final double width = orientation == Orientation.portrait ? size.width : size.height;
 
-    return Column(
-      children: [
-        // Number of charts selector
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              const Text("Number of charts:"),
-              DropdownButton<int>(
-                value: numberOfChartsToShow,
-                items: List.generate(
-                  6,
-                  (index) =>
-                      DropdownMenuItem(value: index + 1, child: Text("${index + 1} Chart${index == 0 ? '' : 's'}")),
+    return Container(
+      color: const Color(0xFFF8F9FA), // Light gray background
+      child: Column(
+        children: [
+          // Number of charts selector
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
                 ),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      numberOfChartsToShow = value;
-                      _clearChartData(cancelTimer: false);
-                    });
-                  }
-                },
-              ),
-            ],
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  "Number of charts:",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: DropdownButton<int>(
+                    value: numberOfChartsToShow,
+                    underline: Container(),
+                    items: List.generate(
+                      6,
+                      (index) =>
+                          DropdownMenuItem(value: index + 1, child: Text("${index + 1} Chart${index == 0 ? '' : 's'}")),
+                    ),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          numberOfChartsToShow = value;
+                          _clearChartData(cancelTimer: false);
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        // Time window selector
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              const Text("Time window:"),
-              DropdownButton<double>(
-                value: timeWindowSeconds,
-                items:
-                    [
-                      5.0,
-                      10.0,
-                      15.0,
-                      20.0,
-                      30.0,
-                    ].map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s"))).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      timeWindowSeconds = value;
-                      _clearChartData(cancelTimer: false);
-                    });
-                  }
-                },
-              ),
-            ],
+          // Time window selector
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Text(
+                  "Time window:",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: DropdownButton<double>(
+                    value: timeWindowSeconds,
+                    underline: Container(),
+                    items:
+                        [
+                          5.0,
+                          10.0,
+                          15.0,
+                          20.0,
+                          30.0,
+                        ].map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s"))).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          timeWindowSeconds = value;
+                          _clearChartData(cancelTimer: false);
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
 
-        // Charts
-        ...List.generate(
-          numberOfChartsToShow,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: SizedBox(
-              width: width - 50,
-              height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
-              child: _buildECGChart(
-                channelIndex: index,
-                legendTitle: channelNames[index],
-                chartColor: chartColors[index],
+          // Charts
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: List.generate(
+                  numberOfChartsToShow,
+                  (index) => Container(
+                    margin: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: width - 50,
+                        height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
+                        child: _buildECGChart(
+                          channelIndex: index,
+                          legendTitle: channelNames[index],
+                          chartColor: chartColors[index],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
 
-        // Control buttons
-        Align(
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _startUpdateData();
-                },
-                child: const Text('Start Test'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  _clearChartData();
-                },
-                child: const Text('Stop & Clear'),
-              ),
-            ],
+          // Control buttons
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    _startUpdateData();
+                  },
+                  child: const Text('Start Test', style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF44336),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    _clearChartData();
+                  },
+                  child: const Text('Stop & Clear', style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildECGChart({required int channelIndex, required String legendTitle, required Color chartColor}) {
-    return SfCartesianChart(
-      title: ChartTitle(text: legendTitle, alignment: ChartAlignment.center),
-      crosshairBehavior: crosshairBehaviors[channelIndex],
-      plotAreaBorderWidth: 0,
-      primaryXAxis: NumericAxis(
-        title: const AxisTitle(text: 'Time (seconds)'),
-        minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
-        maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
-        interval: timeWindowSeconds / 5, // 5 intervals on x-axis
-        interactiveTooltip: const InteractiveTooltip(enable: false),
-        edgeLabelPlacement: EdgeLabelPlacement.shift,
-        majorGridLines: const MajorGridLines(width: 1),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A0A0A), // Dark background for ECG monitor look
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
       ),
-      primaryYAxis: const NumericAxis(
-        title: AxisTitle(text: 'Voltage (V)'),
-        interactiveTooltip: InteractiveTooltip(enable: false),
-        edgeLabelPlacement: EdgeLabelPlacement.shift,
-        majorGridLines: MajorGridLines(width: 1),
-      ),
-      series: [
-        LineSeries<ChartData, double>(
-          enableTooltip: false,
-          onRendererCreated: (ChartSeriesController controller) {
-            chartSeriesControllers[channelIndex] = controller;
-          },
-          legendItemText: legendTitle,
-          dataSource: channelChartData[channelIndex],
-          color: chartColor,
-          xValueMapper: (ChartData data, _) => data.x,
-          yValueMapper: (ChartData data, _) => data.y,
-          width: 2,
+      child: SfCartesianChart(
+        backgroundColor: const Color(0xFF0A0A0A), // Dark ECG monitor background
+        title: ChartTitle(
+          text: legendTitle,
+          alignment: ChartAlignment.center,
+          textStyle: TextStyle(
+            color: chartColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ],
+        crosshairBehavior: crosshairBehaviors[channelIndex],
+        plotAreaBorderWidth: 1,
+        plotAreaBorderColor: Colors.grey[600],
+        primaryXAxis: NumericAxis(
+          title: AxisTitle(
+            text: 'Time (seconds)',
+            textStyle: TextStyle(color: Colors.grey[300], fontSize: 12),
+          ),
+          minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
+          maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
+          interval: timeWindowSeconds / 5, // 5 intervals on x-axis
+          interactiveTooltip: const InteractiveTooltip(enable: false),
+          edgeLabelPlacement: EdgeLabelPlacement.shift,
+          majorGridLines: MajorGridLines(
+            width: 0.5,
+            color: Colors.grey[700],
+          ),
+          minorGridLines: MinorGridLines(
+            width: 0.3,
+            color: Colors.grey[800],
+          ),
+          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
+          axisLine: AxisLine(color: Colors.grey[600]),
+        ),
+        primaryYAxis: NumericAxis(
+          title: AxisTitle(
+            text: 'Voltage (V)',
+            textStyle: TextStyle(color: Colors.grey[300], fontSize: 12),
+          ),
+          interactiveTooltip: const InteractiveTooltip(enable: false),
+          edgeLabelPlacement: EdgeLabelPlacement.shift,
+          majorGridLines: MajorGridLines(
+            width: 0.5,
+            color: Colors.grey[700],
+          ),
+          minorGridLines: MinorGridLines(
+            width: 0.3,
+            color: Colors.grey[800],
+          ),
+          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
+          axisLine: AxisLine(color: Colors.grey[600]),
+        ),
+        series: [
+          LineSeries<ChartData, double>(
+            enableTooltip: false,
+            onRendererCreated: (ChartSeriesController controller) {
+              chartSeriesControllers[channelIndex] = controller;
+            },
+            legendItemText: legendTitle,
+            dataSource: channelChartData[channelIndex],
+            color: chartColor,
+            xValueMapper: (ChartData data, _) => data.x,
+            yValueMapper: (ChartData data, _) => data.y,
+            width: 2,
+          ),
+        ],
+      ),
     );
   }
 
