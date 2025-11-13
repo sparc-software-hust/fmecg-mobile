@@ -132,15 +132,32 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       channelIndex++
     ) {
       ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+      
+      // Store the original length before adding new data
+      final int originalLength = channelChartData[channelIndex].length;
 
       channelChartData[channelIndex].add(newData);
 
+      // Remove old data points outside the time window
+      final int lengthBeforeRemoval = channelChartData[channelIndex].length;
       channelChartData[channelIndex].removeWhere((data) => (currentTime - data.x) > maxTimeWindow);
+      final int lengthAfterRemoval = channelChartData[channelIndex].length;
+      
+      // Check if data was removed
+      final bool dataWasRemoved = lengthBeforeRemoval != lengthAfterRemoval;
 
       if (chartSeriesControllers[channelIndex] != null) {
-        chartSeriesControllers[channelIndex]!.updateDataSource(
-          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
-        );
+        if (dataWasRemoved) {
+          // If old data was removed, update the entire data source to reflect changes
+          chartSeriesControllers[channelIndex]!.updateDataSource(
+            updatedDataIndexes: List.generate(lengthAfterRemoval, (index) => index),
+          );
+        } else {
+          // If no data was removed, just add the new data point
+          chartSeriesControllers[channelIndex]!.updateDataSource(
+            addedDataIndexes: <int>[lengthAfterRemoval - 1],
+          );
+        }
       }
     }
   }
@@ -162,208 +179,198 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     final Orientation orientation = MediaQuery.of(context).orientation;
     final double width = orientation == Orientation.portrait ? size.width : size.height;
 
-    return Container(
-      color: const Color(0xFFF8F9FA), // Light gray background
-      child: Column(
-        children: [
-          // Number of charts selector
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  "Number of charts:",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: DropdownButton<int>(
-                    value: numberOfChartsToShow,
-                    underline: Container(),
-                    items: List.generate(
-                      6,
-                      (index) =>
-                          DropdownMenuItem(value: index + 1, child: Text("${index + 1} Chart${index == 0 ? '' : 's'}")),
+    return Material(
+      child: SafeArea(
+        child: Container(
+          color: const Color(0xFFF8F9FA), // Light gray background
+          child: Column(
+            children: [
+              // Number of charts selector
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
                     ),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          numberOfChartsToShow = value;
-                          _clearChartData(cancelTimer: false);
-                        });
-                      }
-                    },
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-
-          // Time window selector
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  "Time window:",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: DropdownButton<double>(
-                    value: timeWindowSeconds,
-                    underline: Container(),
-                    items:
-                        [
-                          5.0,
-                          10.0,
-                          15.0,
-                          20.0,
-                          30.0,
-                        ].map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s"))).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          timeWindowSeconds = value;
-                          _clearChartData(cancelTimer: false);
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Charts
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: List.generate(
-                  numberOfChartsToShow,
-                  (index) => Container(
-                    margin: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "Number of charts:",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: DropdownButton<int>(
+                        value: numberOfChartsToShow,
+                        underline: Container(),
+                        items: List.generate(
+                          6,
+                          (index) => DropdownMenuItem(
+                            value: index + 1,
+                            child: Text("${index + 1} Chart${index == 0 ? '' : 's'}"),
+                          ),
                         ),
-                      ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              numberOfChartsToShow = value;
+                              _clearChartData(cancelTimer: false);
+                            });
+                          }
+                        },
+                      ),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        width: width - 50,
-                        height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
-                        child: _buildECGChart(
-                          channelIndex: index,
-                          legendTitle: channelNames[index],
-                          chartColor: chartColors[index],
+                  ],
+                ),
+              ),
+
+              // Time window selector
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "Time window:",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: DropdownButton<double>(
+                        value: timeWindowSeconds,
+                        underline: Container(),
+                        items:
+                            [5.0, 10.0, 15.0, 20.0, 30.0]
+                                .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              timeWindowSeconds = value;
+                              _clearChartData(cancelTimer: false);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Charts
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: List.generate(
+                      numberOfChartsToShow,
+                      (index) => Container(
+                        margin: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            width: width - 50,
+                            height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
+                            child: _buildECGChart(
+                              channelIndex: index,
+                              legendTitle: channelNames[index],
+                              chartColor: chartColors[index],
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
 
-          // Control buttons
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, -1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              // Control buttons
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, -1),
                     ),
-                  ),
-                  onPressed: () {
-                    _startUpdateData();
-                  },
-                  child: const Text('Start Test', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ],
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF44336),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4CAF50),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () {
+                        _startUpdateData();
+                      },
+                      child: const Text('Start Test', style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
-                  ),
-                  onPressed: () async {
-                    _clearChartData();
-                  },
-                  child: const Text('Stop & Clear', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF44336),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () async {
+                        _clearChartData();
+                      },
+                      child: const Text('Stop & Clear', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -380,51 +387,29 @@ class _LiveChartSampleState extends State<LiveChartSample> {
         title: ChartTitle(
           text: legendTitle,
           alignment: ChartAlignment.center,
-          textStyle: TextStyle(
-            color: chartColor,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: TextStyle(color: chartColor, fontSize: 14, fontWeight: FontWeight.w600),
         ),
         crosshairBehavior: crosshairBehaviors[channelIndex],
         plotAreaBorderWidth: 1,
         plotAreaBorderColor: Colors.grey[600],
         primaryXAxis: NumericAxis(
-          title: AxisTitle(
-            text: 'Time (seconds)',
-            textStyle: TextStyle(color: Colors.grey[300], fontSize: 12),
-          ),
+          title: AxisTitle(text: 'Time (seconds)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
           minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
           maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
           interval: timeWindowSeconds / 5, // 5 intervals on x-axis
           interactiveTooltip: const InteractiveTooltip(enable: false),
           edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(
-            width: 0.5,
-            color: Colors.grey[700],
-          ),
-          minorGridLines: MinorGridLines(
-            width: 0.3,
-            color: Colors.grey[800],
-          ),
+          majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
+          minorGridLines: MinorGridLines(width: 0.3, color: Colors.grey[800]),
           labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
           axisLine: AxisLine(color: Colors.grey[600]),
         ),
         primaryYAxis: NumericAxis(
-          title: AxisTitle(
-            text: 'Voltage (V)',
-            textStyle: TextStyle(color: Colors.grey[300], fontSize: 12),
-          ),
+          title: AxisTitle(text: 'Voltage (V)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
           interactiveTooltip: const InteractiveTooltip(enable: false),
           edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(
-            width: 0.5,
-            color: Colors.grey[700],
-          ),
-          minorGridLines: MinorGridLines(
-            width: 0.3,
-            color: Colors.grey[800],
-          ),
+          majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
+          minorGridLines: MinorGridLines(width: 0.3, color: Colors.grey[800]),
           labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
           axisLine: AxisLine(color: Colors.grey[600]),
         ),
