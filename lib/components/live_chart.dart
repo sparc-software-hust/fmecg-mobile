@@ -137,19 +137,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       // Check if we're at the maximum capacity for the time window
       if (channelChartData[channelIndex].length >= maxDataPoints) {
         // Replace the oldest data point with the new one (sliding window effect)
-        channelChartData[channelIndex].removeAt(0);
-        channelChartData[channelIndex].add(newData);
-        
-        // Update all data points since we shifted the entire array
+        channelChartData[channelIndex][0] = newData;
+
         if (chartSeriesControllers[channelIndex] != null) {
-          chartSeriesControllers[channelIndex]!.updateDataSource(
-            updatedDataIndexes: List.generate(channelChartData[channelIndex].length, (index) => index),
-          );
+          chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndex: 0);
         }
       } else {
-        // Just add the new data point if we haven't reached capacity
         channelChartData[channelIndex].add(newData);
-        
+
         if (chartSeriesControllers[channelIndex] != null) {
           chartSeriesControllers[channelIndex]!.updateDataSource(
             addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
