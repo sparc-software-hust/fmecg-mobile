@@ -1,8 +1,7 @@
+import 'package:fmecg_mobile/components/live_chart.dart';
 import 'package:fmecg_mobile/features/authentication/bloc/authentication_bloc.dart';
 import 'package:fmecg_mobile/features/authentication/bloc/authentication_event.dart';
 import 'package:fmecg_mobile/features/authentication/bloc/authentication_state.dart';
-import 'package:fmecg_mobile/features/authentication/repository/authentication_repo.dart';
-import 'package:fmecg_mobile/features/authentication/view/login2_screen.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';
 import 'package:fmecg_mobile/screens/login_screen/log_in_screen.dart';
 import 'package:fmecg_mobile/screens/main_screen.dart';
@@ -14,11 +13,8 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BleReactiveScreen();
-    // return BlocProvider(
-    //   create: (context) => AuthenticationBloc(authRepository: AuthRepository()),
-    //   child: const BlocNavigate(),
-    // );
+    // return const BleReactiveScreen();
+    return LiveChartSample();
   }
 }
 

@@ -4,8 +4,6 @@ import 'dart:math' as math;
 
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/ecg_data_controller.dart';
-import 'package:fmecg_mobile/controllers/ecg_record_controller.dart';
-import 'package:fmecg_mobile/utils/files_management.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart' hide EdgeLabelPlacement;
@@ -20,8 +18,6 @@ class LiveChartSample extends StatefulWidget {
 }
 
 class _LiveChartSampleState extends State<LiveChartSample> {
-  // static const platform = MethodChannel("com.example.method_channel/java");
-
   Timer? timer;
   List<ChartData> chartDataPPG = [];
   List<ChartData> chartDataPCG = [];
@@ -74,51 +70,6 @@ class _LiveChartSampleState extends State<LiveChartSample> {
 
   _startUpdateData() {
     timer = Timer.periodic(const Duration(milliseconds: 4), _updateDataSource);
-  }
-
-  _saveDataAndSendToServer() async {
-    timer?.cancel();
-    if (widget.fileToSave == null) return;
-
-    final DateTime stopTime = DateTime.now();
-    // final SharedPreferences preferences = await SharedPreferences.getInstance();
-    // final Map userDataDecoded = json.decode((preferences.getString('userData') ?? ""));
-
-    // if (userDataDecoded["roleId"] == -1 || userDataDecoded["token"] == "") {
-    //   return Utils.showDialogLoginRequirement(context);
-    // }
-
-    // final int userId = userDataDecoded["userId"] ?? 0;
-    const String deviceId = "2a3cec92-682a-4d4e-be35-aff01cc5011a";
-    const String userId = "4df9ace1-0229-4756-b850-51a83cb0bb6e";
-    final String startTimeAsTimeStamp = widget.fileToSave!.path.split("/").last.split('.').first;
-    final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(int.parse(startTimeAsTimeStamp));
-
-    final Map fileUploadInformation = {
-      "file_path": widget.fileToSave!.path,
-      "user_id": userId,
-      "device_id": deviceId,
-      "record_type": 3,
-      "start_time": startTime.millisecondsSinceEpoch,
-      "end_time": stopTime.millisecondsSinceEpoch,
-      "device_type": 3,
-    };
-
-    // send files to db
-    await FilesManagement.handleSaveDataToFileV2(widget.fileToSave!, samples);
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      ECGRecordController.uploadFileToDB(fileUploadInformation);
-    });
-
-    // final bytesInFile = await widget.fileToSave.readAsBytes();
-    // print('zzz:$bytesInFile');
-    // final data = await platform.invokeMethod('helloWorldPython', {'bytes': bytesInFile});
-
-    setState(() {
-      _clearChartData();
-      isButtonEndMeasurement = false;
-    });
   }
 
   @override
