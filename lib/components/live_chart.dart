@@ -125,6 +125,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   void _updateChartDataWithRealData(List<double> channelVoltageValues) {
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
+    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt(); // Calculate max points based on time window
 
     for (
       int channelIndex = 0;
@@ -132,30 +133,26 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       channelIndex++
     ) {
       ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-      
-      // Store the original length before adding new data
-      final int originalLength = channelChartData[channelIndex].length;
 
-      channelChartData[channelIndex].add(newData);
-
-      // Remove old data points outside the time window
-      final int lengthBeforeRemoval = channelChartData[channelIndex].length;
-      channelChartData[channelIndex].removeWhere((data) => (currentTime - data.x) > maxTimeWindow);
-      final int lengthAfterRemoval = channelChartData[channelIndex].length;
-      
-      // Check if data was removed
-      final bool dataWasRemoved = lengthBeforeRemoval != lengthAfterRemoval;
-
-      if (chartSeriesControllers[channelIndex] != null) {
-        if (dataWasRemoved) {
-          // If old data was removed, update the entire data source to reflect changes
+      // Check if we're at the maximum capacity for the time window
+      if (channelChartData[channelIndex].length >= maxDataPoints) {
+        // Replace the oldest data point with the new one (sliding window effect)
+        channelChartData[channelIndex].removeAt(0);
+        channelChartData[channelIndex].add(newData);
+        
+        // Update all data points since we shifted the entire array
+        if (chartSeriesControllers[channelIndex] != null) {
           chartSeriesControllers[channelIndex]!.updateDataSource(
-            updatedDataIndexes: List.generate(lengthAfterRemoval, (index) => index),
+            updatedDataIndexes: List.generate(channelChartData[channelIndex].length, (index) => index),
           );
-        } else {
-          // If no data was removed, just add the new data point
+        }
+      } else {
+        // Just add the new data point if we haven't reached capacity
+        channelChartData[channelIndex].add(newData);
+        
+        if (chartSeriesControllers[channelIndex] != null) {
           chartSeriesControllers[channelIndex]!.updateDataSource(
-            addedDataIndexes: <int>[lengthAfterRemoval - 1],
+            addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
           );
         }
       }
