@@ -135,12 +135,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
 
       // Check if we're at the maximum capacity for the time window
-      if (channelChartData[channelIndex].length >= maxDataPoints) {
-        // Replace the oldest data point with the new one (sliding window effect)
-        channelChartData[channelIndex][0] = newData;
+      if (channelChartData[channelIndex].length == maxDataPoints) {
+        final int currentDataLength = channelChartData[channelIndex].length;
+        final index = currentDataLength % maxDataPoints;
+        crosshairBehaviors[channelIndex].showByIndex(index);
+        channelChartData[channelIndex][index] = newData;
 
         if (chartSeriesControllers[channelIndex] != null) {
-          chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndex: 0);
+          chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndex: index);
         }
       } else {
         channelChartData[channelIndex].add(newData);

@@ -58,7 +58,7 @@ class _OneChartState extends State<OneChart> {
         edgeLabelPlacement: EdgeLabelPlacement.shift,
       ),
       series: [
-        FastLineSeries<ChartData, int>(
+        FastLineSeries<ChartData, double>(
           onRendererCreated: widget.setChartSeriesController,
           dataSource: widget.chartData,
           legendItemText: widget.legendTitle,
@@ -75,6 +75,6 @@ class _OneChartState extends State<OneChart> {
 
 class ChartData {
   ChartData(this.x, this.y);
-  final int x;
+  final double x;
   final double y;
 }
