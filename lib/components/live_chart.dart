@@ -22,13 +22,13 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   List<List<ChartData>> channelChartData = [];
   List<ChartSeriesController?> chartSeriesControllers = [];
   List<CrosshairBehavior> crosshairBehaviors = [];
-  
+
   late int count;
   int countX = 500;
   int numberOfChartsToShow = 2;
   double timeWindowSeconds = 10.0;
   double samplingRateHz = 250.0; // Assuming 250 Hz sampling rate
-  
+
   List samples = [];
   bool isButtonEndMeasurement = true;
   DateTime? startTime;
@@ -44,10 +44,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   ];
 
   // Channel names
-  final List<String> channelNames = [
-    "Channel 1", "Channel 2", "Channel 3", 
-    "Channel 4", "Channel 5", "Channel 6"
-  ];
+  final List<String> channelNames = ["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"];
 
   @override
   void initState() {
@@ -67,17 +64,19 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     channelChartData.clear();
     chartSeriesControllers.clear();
     crosshairBehaviors.clear();
-    
+
     for (int i = 0; i < 6; i++) {
       channelChartData.add([]);
       chartSeriesControllers.add(null);
-      crosshairBehaviors.add(CrosshairBehavior(
-        enable: true,
-        lineType: CrosshairLineType.vertical,
-        activationMode: ActivationMode.none,
-        lineColor: chartColors[i],
-        lineWidth: 2,
-      ));
+      crosshairBehaviors.add(
+        CrosshairBehavior(
+          enable: true,
+          lineType: CrosshairLineType.vertical,
+          activationMode: ActivationMode.none,
+          lineColor: chartColors[i],
+          lineWidth: 2,
+        ),
+      );
     }
   }
 
@@ -85,11 +84,11 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     if (cancelTimer) {
       timer?.cancel();
     }
-    
+
     for (int i = 0; i < channelChartData.length; i++) {
       channelChartData[i].clear();
     }
-    
+
     samples = [];
     count = 0;
     startTime = null;
@@ -109,15 +108,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   void _processBluetoothData(List<int> bluetoothPacket) {
     try {
       // Use the ECGPacketParser to process the real Bluetooth data
-      List<double> channelDecimalValues = EcgPacketParser.handleDataRowFromBluetooth(bluetoothPacket);
-      List<double> channelVoltageValues = EcgPacketParser.calculateDataPointToShow(channelDecimalValues);
-      
+      List<double> channelDecimalValues = EcgPacketParser.processECGDataPacketFromBluetooth(bluetoothPacket);
+      List<double> channelVoltageValues = EcgPacketParser.convertDecimalValuesToVoltageForDisplay(channelDecimalValues);
+
       // Store the sample data
       samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
-      
+
       // Update chart data for each channel
       _updateChartDataWithRealData(channelVoltageValues);
-      
     } catch (e) {
       print('Error processing Bluetooth data: $e');
       // Fallback to demo data if there's an error
@@ -128,26 +126,23 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   void _updateChartDataWithRealData(List<double> channelVoltageValues) {
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
-    
-    for (int channelIndex = 0; channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length; channelIndex++) {
+
+    for (
+      int channelIndex = 0;
+      channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length;
+      channelIndex++
+    ) {
       ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-      
-      // Add new data point
+
       channelChartData[channelIndex].add(newData);
-      
-      // Remove old data points outside the time window
-      channelChartData[channelIndex].removeWhere((data) => 
-        (currentTime - data.x) > maxTimeWindow);
-      
-      // Update chart controller
+
+      channelChartData[channelIndex].removeWhere((data) => (currentTime - data.x) > maxTimeWindow);
+
       if (chartSeriesControllers[channelIndex] != null) {
         chartSeriesControllers[channelIndex]!.updateDataSource(
-          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1]
+          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
         );
       }
-      
-      // Update crosshair
-      crosshairBehaviors[channelIndex].showByValue(currentTime, channelVoltageValues[channelIndex]);
     }
   }
 
@@ -158,7 +153,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       if (index >= 21) return count % 256; // Count byte
       return _getRandomInt(1, 255); // Data bytes
     });
-    
+
     _processBluetoothData(fakeBluetoothPacket);
   }
 
@@ -179,10 +174,11 @@ class _LiveChartSampleState extends State<LiveChartSample> {
               const Text("Number of charts:"),
               DropdownButton<int>(
                 value: numberOfChartsToShow,
-                items: List.generate(6, (index) => DropdownMenuItem(
-                  value: index + 1,
-                  child: Text("${index + 1} Chart${index == 0 ? '' : 's'}"),
-                )),
+                items: List.generate(
+                  6,
+                  (index) =>
+                      DropdownMenuItem(value: index + 1, child: Text("${index + 1} Chart${index == 0 ? '' : 's'}")),
+                ),
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -195,7 +191,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
             ],
           ),
         ),
-        
+
         // Time window selector
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -205,12 +201,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
               const Text("Time window:"),
               DropdownButton<double>(
                 value: timeWindowSeconds,
-                items: [5.0, 10.0, 15.0, 20.0, 30.0].map((seconds) => 
-                  DropdownMenuItem(
-                    value: seconds,
-                    child: Text("${seconds.toInt()}s"),
-                  )
-                ).toList(),
+                items:
+                    [
+                      5.0,
+                      10.0,
+                      15.0,
+                      20.0,
+                      30.0,
+                    ].map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s"))).toList(),
                 onChanged: (value) {
                   if (value != null) {
                     setState(() {
@@ -225,8 +223,9 @@ class _LiveChartSampleState extends State<LiveChartSample> {
         ),
 
         // Charts
-        ...List.generate(numberOfChartsToShow, (index) => 
-          Padding(
+        ...List.generate(
+          numberOfChartsToShow,
+          (index) => Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: SizedBox(
               width: width - 50,
@@ -265,16 +264,9 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     );
   }
 
-  Widget _buildECGChart({
-    required int channelIndex,
-    required String legendTitle,
-    required Color chartColor,
-  }) {
+  Widget _buildECGChart({required int channelIndex, required String legendTitle, required Color chartColor}) {
     return SfCartesianChart(
-      title: ChartTitle(
-        text: legendTitle,
-        alignment: ChartAlignment.center,
-      ),
+      title: ChartTitle(text: legendTitle, alignment: ChartAlignment.center),
       crosshairBehavior: crosshairBehaviors[channelIndex],
       plotAreaBorderWidth: 0,
       primaryXAxis: NumericAxis(
