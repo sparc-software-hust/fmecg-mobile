@@ -23,7 +23,6 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   List<CrosshairBehavior> crosshairBehaviors = [];
 
   late int count;
-  int countX = 500;
   int numberOfChartsToShow = 2;
   double timeWindowSeconds = 10.0;
   double samplingRateHz = 250.0; // Assuming 250 Hz sampling rate
@@ -125,26 +124,23 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   void _updateChartDataWithRealData(List<double> channelVoltageValues) {
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
-    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt(); // Calculate max points based on time window
+    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
 
     for (
       int channelIndex = 0;
       channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length;
       channelIndex++
     ) {
-      ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-
-      // Check if we're at the maximum capacity for the time window
       if (channelChartData[channelIndex].length == maxDataPoints) {
-        final int currentDataLength = channelChartData[channelIndex].length;
-        final index = currentDataLength % maxDataPoints;
+        final index = count % maxDataPoints;
+        // Calculate the sliding window x-value: use the current time for proper sliding effect
+        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
         crosshairBehaviors[channelIndex].showByIndex(index);
         channelChartData[channelIndex][index] = newData;
 
-        if (chartSeriesControllers[channelIndex] != null) {
-          chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndex: index);
-        }
+        chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndexes: <int>[index]);
       } else {
+        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
         channelChartData[channelIndex].add(newData);
 
         if (chartSeriesControllers[channelIndex] != null) {
@@ -426,8 +422,6 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   }
 
   void _updateDataSource(Timer timer) {
-    // For demo purposes, use fake data
-    // In real implementation, this would be called with actual Bluetooth data
     _updateWithDemoData();
     count = count + 1;
   }
