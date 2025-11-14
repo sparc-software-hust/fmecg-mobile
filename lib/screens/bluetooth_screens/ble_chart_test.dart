@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/constants/color_constant.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
@@ -58,7 +59,10 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   ];
 
   // Channel names
-  final List<String> channelNames = ["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"];
+  final List<String> channelNames = [
+    "Channel 1", "Channel 2", "Channel 3", 
+    "Channel 4", "Channel 5", "Channel 6"
+  ];
 
   @override
   void initState() {
@@ -109,6 +113,12 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
       subscribeStream.cancel();
     }
 
+    for (int i = 0; i < chartSeriesControllers.length; i++) {
+      chartSeriesControllers[i]?.updateDataSource(
+        removedDataIndexes: List<int>.generate(channelChartData[i].length, (index) => index),
+      );
+    }
+
     setState(() {});
   }
 
@@ -142,7 +152,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
 
   void _processBluetoothData(List<int> bluetoothPacket) {
     try {
-      // Use ECGDataController to process real Bluetooth data
+      // Use ECGPacketParser to process real Bluetooth data
       List<double> channelDecimalValues = EcgPacketParser.processECGDataPacketFromBluetooth(bluetoothPacket);
       List<double> channelVoltageValues = EcgPacketParser.convertDecimalValuesToVoltageForDisplay(channelDecimalValues);
 
@@ -165,25 +175,35 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   void _updateChartDataWithRealData(List<double> channelVoltageValues) {
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
+    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
 
     for (
       int channelIndex = 0;
       channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length;
       channelIndex++
     ) {
-      ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+      if (channelChartData[channelIndex].length == maxDataPoints) {
+        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+        
+        // Remove the first data point and add new one (sliding window)
+        channelChartData[channelIndex].removeAt(0);
+        channelChartData[channelIndex].add(newData);
 
-      // Add new data point
-      channelChartData[channelIndex].add(newData);
+        if (chartSeriesControllers[channelIndex] != null) {
+          chartSeriesControllers[channelIndex]!.updateDataSource(
+            removedDataIndexes: <int>[0],
+            addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
+          );
+        }
+      } else {
+        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+        channelChartData[channelIndex].add(newData);
 
-      // Remove old data points outside the time window
-      channelChartData[channelIndex].removeWhere((data) => (currentTime - data.x) > maxTimeWindow);
-
-      // Update chart controller
-      if (chartSeriesControllers[channelIndex] != null) {
-        chartSeriesControllers[channelIndex]!.updateDataSource(
-          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
-        );
+        if (chartSeriesControllers[channelIndex] != null) {
+          chartSeriesControllers[channelIndex]!.updateDataSource(
+            addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
+          );
+        }
       }
     }
   }
@@ -207,7 +227,10 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: Icon(PhosphorIcons.regular.arrowLeft), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: Icon(PhosphorIcons.regular.arrowLeft),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(S.current.measurementPage),
         backgroundColor: Colors.white,
         elevation: 1,
@@ -235,7 +258,11 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                 children: [
                   Text(
                     "Number of charts:",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800],
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -287,7 +314,11 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                 children: [
                   Text(
                     "Time window:",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800],
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -299,10 +330,10 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                     child: DropdownButton<double>(
                       value: timeWindowSeconds,
                       underline: Container(),
-                      items:
-                          [5.0, 10.0, 15.0, 20.0, 30.0]
-                              .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
-                              .toList(),
+                      items: [5.0, 10.0, 15.0, 20.0, 30.0]
+                          .map((seconds) => DropdownMenuItem(
+                              value: seconds, child: Text("${seconds.toInt()}s")))
+                          .toList(),
                       onChanged: (value) {
                         if (value != null && !isMeasuring) {
                           setState(() {
@@ -342,10 +373,16 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                         child: SizedBox(
                           width: width - 50,
                           height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
-                          child: _buildECGChart(
+                          child: ECGChartWidget(
                             channelIndex: index,
                             legendTitle: channelNames[index],
                             chartColor: chartColors[index],
+                            chartData: channelChartData[index],
+                            crosshairBehavior: crosshairBehaviors[index],
+                            timeWindowSeconds: timeWindowSeconds,
+                            onRendererCreated: (controller) {
+                              chartSeriesControllers[index] = controller;
+                            },
                           ),
                         ),
                       ),
@@ -377,7 +414,9 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                       backgroundColor: isMeasuring ? const Color(0xFFF44336) : const Color(0xFF4CAF50),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: () {
                       if (isMeasuring) {
@@ -399,72 +438,21 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                       backgroundColor: const Color(0xFF2196F3),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: samples.isNotEmpty ? _handleSaveRecordInFile : null,
-                    child: const Text('Save Data', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      'Save Data',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildECGChart({required int channelIndex, required String legendTitle, required Color chartColor}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0A), // Dark background for ECG monitor look
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: SfCartesianChart(
-        backgroundColor: const Color(0xFF0A0A0A), // Dark ECG monitor background
-        title: ChartTitle(
-          text: legendTitle,
-          alignment: ChartAlignment.center,
-          textStyle: TextStyle(color: chartColor, fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        crosshairBehavior: crosshairBehaviors[channelIndex],
-        plotAreaBorderWidth: 1,
-        plotAreaBorderColor: Colors.grey[600],
-        primaryXAxis: NumericAxis(
-          title: AxisTitle(text: 'Time (seconds)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
-          minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
-          maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
-          interval: timeWindowSeconds / 5, // 5 intervals on x-axis
-          interactiveTooltip: const InteractiveTooltip(enable: false),
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
-          minorGridLines: MinorGridLines(width: 0.3, color: Colors.grey[800]),
-          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
-          axisLine: AxisLine(color: Colors.grey[600]),
-        ),
-        primaryYAxis: NumericAxis(
-          title: AxisTitle(text: 'Voltage (V)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
-          interactiveTooltip: const InteractiveTooltip(enable: false),
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
-          minorGridLines: MinorGridLines(width: 0.3, color: Colors.grey[800]),
-          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
-          axisLine: AxisLine(color: Colors.grey[600]),
-        ),
-        series: [
-          LineSeries<ChartData, double>(
-            enableTooltip: false,
-            onRendererCreated: (ChartSeriesController controller) {
-              chartSeriesControllers[channelIndex] = controller;
-            },
-            legendItemText: legendTitle,
-            dataSource: channelChartData[channelIndex],
-            color: chartColor,
-            xValueMapper: (ChartData data, _) => data.x,
-            yValueMapper: (ChartData data, _) => data.y,
-            width: 2,
-          ),
-        ],
       ),
     );
   }
