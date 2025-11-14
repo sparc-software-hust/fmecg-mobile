@@ -132,13 +132,19 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       channelIndex++
     ) {
       if (channelChartData[channelIndex].length == maxDataPoints) {
-        final index = count % maxDataPoints;
-        // Calculate the sliding window x-value: use the current time for proper sliding effect
+        final index = currentTime % maxTimeWindow;
         ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-        crosshairBehaviors[channelIndex].showByIndex(index);
-        channelChartData[channelIndex][index] = newData;
+        channelChartData[channelIndex].removeAt(0);
+        channelChartData[channelIndex].add(newData);
 
-        chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndexes: <int>[index]);
+        // crosshairBehaviors[channelIndex].showByIndex(index);
+        // channelChartData[channelIndex][index] = newData;
+
+        // chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndexes: <int>[index]);
+        chartSeriesControllers[channelIndex]!.updateDataSource(
+          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
+          removedDataIndexes: <int>[0],
+        );
       } else {
         ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
         channelChartData[channelIndex].add(newData);
@@ -384,8 +390,8 @@ class _LiveChartSampleState extends State<LiveChartSample> {
         plotAreaBorderColor: Colors.grey[600],
         primaryXAxis: NumericAxis(
           title: AxisTitle(text: 'Time (seconds)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
-          minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
-          maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
+          // minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
+          // maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
           interval: timeWindowSeconds / 5, // 5 intervals on x-axis
           interactiveTooltip: const InteractiveTooltip(enable: false),
           edgeLabelPlacement: EdgeLabelPlacement.shift,
@@ -404,7 +410,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
           axisLine: AxisLine(color: Colors.grey[600]),
         ),
         series: [
-          LineSeries<ChartData, double>(
+          FastLineSeries<ChartData, double>(
             enableTooltip: false,
             onRendererCreated: (ChartSeriesController controller) {
               chartSeriesControllers[channelIndex] = controller;
@@ -414,7 +420,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
             color: chartColor,
             xValueMapper: (ChartData data, _) => data.x,
             yValueMapper: (ChartData data, _) => data.y,
-            width: 2,
+            width: 1,
           ),
         ],
       ),
@@ -422,7 +428,24 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   }
 
   void _updateDataSource(Timer timer) {
-    _updateWithDemoData();
+    // _updateWithDemoData();
+    final double currentTime = _getCurrentTimeInSeconds();
+
+    // Generate 6 channels of data
+    List<double> channelVoltageValues = [];
+    for (int i = 0; i < 6; i++) {
+      // Create 6 different sine waves with different frequencies
+      // Formula: sin(2 * PI * frequency * time)
+      // We'll give each channel a simple frequency like 1Hz, 1.5Hz, 2Hz, etc.
+      double frequency = 1.0 + (i * 0.5);
+      double voltage = math.sin(2 * math.pi * frequency * currentTime);
+
+      // We'll also add a second, higher-frequency wave to make it look more like ECG
+      double highFrequencyNoise = 0.1 * math.sin(2 * math.pi * 50 * currentTime);
+
+      channelVoltageValues.add(voltage + highFrequencyNoise);
+    }
+    _updateChartDataWithRealData(channelVoltageValues);
     count = count + 1;
   }
 
