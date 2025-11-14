@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
 import 'package:flutter/material.dart';
@@ -156,6 +157,9 @@ class _LiveChartSampleState extends State<LiveChartSample> {
         }
       }
     }
+
+    // Trigger setState to update the charts
+    setState(() {});
   }
 
   void _updateWithDemoData() {
@@ -307,10 +311,16 @@ class _LiveChartSampleState extends State<LiveChartSample> {
                           child: SizedBox(
                             width: width - 50,
                             height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
-                            child: _buildECGChart(
+                            child: ECGChartWidget(
                               channelIndex: index,
                               legendTitle: channelNames[index],
                               chartColor: chartColors[index],
+                              chartData: channelChartData[index],
+                              crosshairBehavior: crosshairBehaviors[index],
+                              timeWindowSeconds: timeWindowSeconds,
+                              onRendererCreated: (controller) {
+                                chartSeriesControllers[index] = controller;
+                              },
                             ),
                           ),
                         ),
@@ -367,62 +377,6 @@ class _LiveChartSampleState extends State<LiveChartSample> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildECGChart({required int channelIndex, required String legendTitle, required Color chartColor}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0A), // Dark background for ECG monitor look
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: SfCartesianChart(
-        backgroundColor: const Color(0xFF0A0A0A), // Dark ECG monitor background
-        title: ChartTitle(
-          text: legendTitle,
-          alignment: ChartAlignment.center,
-          textStyle: TextStyle(color: chartColor, fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        crosshairBehavior: crosshairBehaviors[channelIndex],
-        plotAreaBorderWidth: 1,
-        plotAreaBorderColor: Colors.grey[600],
-        primaryXAxis: NumericAxis(
-          title: AxisTitle(text: 'Time (seconds)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
-          // minimum: startTime != null ? math.max(0, _getCurrentTimeInSeconds() - timeWindowSeconds) : 0,
-          // maximum: startTime != null ? math.max(timeWindowSeconds, _getCurrentTimeInSeconds()) : timeWindowSeconds,
-          interval: timeWindowSeconds / 5, // 5 intervals on x-axis
-          interactiveTooltip: const InteractiveTooltip(enable: false),
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
-          minorGridLines: MinorGridLines(width: 0.3, color: Colors.grey[800]),
-          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
-          axisLine: AxisLine(color: Colors.grey[600]),
-        ),
-        primaryYAxis: NumericAxis(
-          title: AxisTitle(text: 'Voltage (V)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
-          interactiveTooltip: const InteractiveTooltip(enable: false),
-          edgeLabelPlacement: EdgeLabelPlacement.shift,
-          majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
-          minorGridLines: MinorGridLines(width: 0.3, color: Colors.grey[800]),
-          labelStyle: TextStyle(color: Colors.grey[400], fontSize: 10),
-          axisLine: AxisLine(color: Colors.grey[600]),
-        ),
-        series: [
-          FastLineSeries<ChartData, double>(
-            enableTooltip: false,
-            onRendererCreated: (ChartSeriesController controller) {
-              chartSeriesControllers[channelIndex] = controller;
-            },
-            legendItemText: legendTitle,
-            dataSource: channelChartData[channelIndex],
-            color: chartColor,
-            xValueMapper: (ChartData data, _) => data.x,
-            yValueMapper: (ChartData data, _) => data.y,
-            width: 1,
-          ),
-        ],
       ),
     );
   }
