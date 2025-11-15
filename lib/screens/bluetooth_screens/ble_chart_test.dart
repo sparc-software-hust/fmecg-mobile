@@ -37,8 +37,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   List<CrosshairBehavior> crosshairBehaviors = [];
 
   late int count;
-  // Track which specific channels are selected
-  List<bool> selectedChannels = [true, true, false, false, false, false]; // Default: Channel 1 and 2 selected
+  List<bool> selectedChannels = [true, true, false, false, false, false]; // Which channels to show
   double timeWindowSeconds = 10.0;
   double samplingRateHz = 250.0;
 
@@ -99,13 +98,13 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   }
 
   List<int> get _getSelectedChannelIndices {
-    List<int> selectedIndices = [];
+    List<int> indices = [];
     for (int i = 0; i < selectedChannels.length; i++) {
       if (selectedChannels[i]) {
-        selectedIndices.add(i);
+        indices.add(i);
       }
     }
-    return selectedIndices;
+    return indices;
   }
 
   int get _numberOfSelectedChannels {
@@ -177,7 +176,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
         samples.clear();
       }
 
-      // Update chart data for each channel
+      // Update chart data for selected channels only
       _updateChartDataWithRealData(channelVoltageValues);
     } catch (e) {
       print('Error processing Bluetooth data: $e');
@@ -190,31 +189,31 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
     final double maxTimeWindow = timeWindowSeconds;
     final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
 
-    // Update data for all selected channels
-    for (int i = 0; i < selectedChannels.length; i++) {
-      if (selectedChannels[i] && i < channelVoltageValues.length) {
-        if (channelChartData[i].length == maxDataPoints) {
-          ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
+    // Update only selected channels
+    for (int i = 0; i < selectedChannels.length && i < channelVoltageValues.length; i++) {
+      if (!selectedChannels[i]) continue; // Skip unselected channels
 
-          // Remove the first data point and add new one (sliding window)
-          channelChartData[i].removeAt(0);
-          channelChartData[i].add(newData);
+      if (channelChartData[i].length == maxDataPoints) {
+        ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
 
-          if (chartSeriesControllers[i] != null) {
-            chartSeriesControllers[i]!.updateDataSource(
-              removedDataIndexes: <int>[0],
-              addedDataIndexes: <int>[channelChartData[i].length - 1],
-            );
-          }
-        } else {
-          ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
-          channelChartData[i].add(newData);
+        // Remove the first data point and add new one (sliding window)
+        channelChartData[i].removeAt(0);
+        channelChartData[i].add(newData);
 
-          if (chartSeriesControllers[i] != null) {
-            chartSeriesControllers[i]!.updateDataSource(
-              addedDataIndexes: <int>[channelChartData[i].length - 1],
-            );
-          }
+        if (chartSeriesControllers[i] != null) {
+          chartSeriesControllers[i]!.updateDataSource(
+            removedDataIndexes: <int>[0],
+            addedDataIndexes: <int>[channelChartData[i].length - 1],
+          );
+        }
+      } else {
+        ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
+        channelChartData[i].add(newData);
+
+        if (chartSeriesControllers[i] != null) {
+          chartSeriesControllers[i]!.updateDataSource(
+            addedDataIndexes: <int>[channelChartData[i].length - 1],
+          );
         }
       }
     }
@@ -248,9 +247,18 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Select Channels to Display:",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Select Channels:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+              ),
+              Text(
+                "${_numberOfSelectedChannels} selected",
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -258,42 +266,32 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
             runSpacing: 8.0,
             children: List.generate(6, (index) {
               return FilterChip(
-                label: Text(
-                  channelNames[index],
-                  style: TextStyle(
-                    color: selectedChannels[index] ? Colors.white : Colors.grey[700],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                label: Text(channelNames[index]),
                 selected: selectedChannels[index],
                 onSelected: isMeasuring ? null : (bool selected) {
                   setState(() {
                     selectedChannels[index] = selected;
-                    if (!selected) {
-                      // Clear data for deselected channel
-                      channelChartData[index].clear();
-                      chartSeriesControllers[index]?.updateDataSource(
-                        removedDataIndexes: List<int>.generate(channelChartData[index].length, (i) => i),
-                      );
-                    }
                     _clearDataInChart();
                   });
                 },
-                selectedColor: chartColors[index],
-                checkmarkColor: Colors.white,
+                selectedColor: chartColors[index].withOpacity(0.3),
+                checkmarkColor: chartColors[index],
                 backgroundColor: Colors.grey[200],
-                side: BorderSide(
-                  color: selectedChannels[index] ? chartColors[index] : Colors.grey[400]!,
-                  width: 1,
+                labelStyle: TextStyle(
+                  color: selectedChannels[index] ? chartColors[index] : Colors.grey[700],
+                  fontWeight: selectedChannels[index] ? FontWeight.w600 : FontWeight.normal,
                 ),
               );
             }),
           ),
-          const SizedBox(height: 8),
-          Text(
-            "${_numberOfSelectedChannels} channel${_numberOfSelectedChannels == 1 ? '' : 's'} selected",
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
+          if (_numberOfSelectedChannels == 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                "Please select at least one channel",
+                style: TextStyle(color: Colors.red[600], fontSize: 12),
+              ),
+            ),
         ],
       ),
     );
@@ -369,59 +367,45 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
               ),
             ),
 
-            // Charts - only show selected channels
+            // Charts
             Expanded(
-              child: selectedChannelIndices.isEmpty 
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.info_outline, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Please select at least one channel to display",
-                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: selectedChannelIndices.map((channelIndex) => Container(
+                    margin: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      children: selectedChannelIndices.map((channelIndex) => Container(
-                        margin: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: width - 50,
+                        height: _numberOfSelectedChannels == 1 ? 400 : (_numberOfSelectedChannels <= 3 ? 250 : 200),
+                        child: ECGChartWidget(
+                          channelIndex: channelIndex,
+                          legendTitle: channelNames[channelIndex],
+                          chartColor: chartColors[channelIndex],
+                          chartData: channelChartData[channelIndex],
+                          crosshairBehavior: crosshairBehaviors[channelIndex],
+                          timeWindowSeconds: timeWindowSeconds,
+                          onRendererCreated: (controller) {
+                            chartSeriesControllers[channelIndex] = controller;
+                          },
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            width: width - 50,
-                            height: selectedChannelIndices.length == 1 ? 400 : (selectedChannelIndices.length <= 3 ? 250 : 200),
-                            child: ECGChartWidget(
-                              channelIndex: channelIndex,
-                              legendTitle: channelNames[channelIndex],
-                              chartColor: chartColors[channelIndex],
-                              chartData: channelChartData[channelIndex],
-                              crosshairBehavior: crosshairBehaviors[channelIndex],
-                              timeWindowSeconds: timeWindowSeconds,
-                              onRendererCreated: (controller) {
-                                chartSeriesControllers[channelIndex] = controller;
-                              },
-                            ),
-                          ),
-                        ),
-                      )).toList(),
+                      ),
                     ),
-                  ),
+                  )).toList(),
+                ),
+              ),
             ),
 
             // Control buttons
@@ -448,7 +432,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    onPressed: selectedChannelIndices.isEmpty ? null : () {
+                    onPressed: _numberOfSelectedChannels > 0 ? () {
                       if (isMeasuring) {
                         _resetMeasuring();
                       } else {
@@ -460,7 +444,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                           setState(() {});
                         });
                       }
-                    },
+                    } : null,
                     child: Text(
                       isMeasuring ? 'Stop & Reset' : 'Start Measurement',
                       style: const TextStyle(fontWeight: FontWeight.w600),
