@@ -58,7 +58,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   ];
 
   // Channel names
-  final List<String> channelNames = ["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"];
+  final List<String> channelNames = ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6"];
 
   @override
   void initState() {
@@ -249,9 +249,9 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
     });
   }
 
-  Widget _buildChannelSelector() {
+  Widget _buildCompactControls() {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -259,50 +259,128 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Channel selector - compact row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Select Channels:",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+              Text("Channels:", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Wrap(
+                  spacing: 4.0,
+                  runSpacing: 4.0,
+                  children: List.generate(6, (index) {
+                    return InkWell(
+                      onTap: isMeasuring ? null : () {
+                        setState(() {
+                          selectedChannels[index] = !selectedChannels[index];
+                          _clearDataInChart(cancelStream: false);
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: selectedChannels[index] ? chartColors[index].withOpacity(0.3) : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: selectedChannels[index] ? chartColors[index] : Colors.grey[400]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          channelNames[index],
+                          style: TextStyle(
+                            color: selectedChannels[index] ? chartColors[index] : Colors.grey[700],
+                            fontWeight: selectedChannels[index] ? FontWeight.w600 : FontWeight.normal,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
               ),
-              Text("${_numberOfSelectedChannels} selected", style: TextStyle(fontSize: 14, color: Colors.grey[600])),
             ],
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: List.generate(6, (index) {
-              return FilterChip(
-                label: Text(channelNames[index]),
-                selected: selectedChannels[index],
-                onSelected:
-                    isMeasuring
-                        ? null
-                        : (bool selected) {
-                          setState(() {
-                            selectedChannels[index] = selected;
-                            // Clear data but don't cancel stream since we're not measuring
-                            _clearDataInChart(cancelStream: false);
-                          });
-                        },
-                selectedColor: chartColors[index].withOpacity(0.3),
-                checkmarkColor: chartColors[index],
-                backgroundColor: Colors.grey[200],
-                labelStyle: TextStyle(
-                  color: selectedChannels[index] ? chartColors[index] : Colors.grey[700],
-                  fontWeight: selectedChannels[index] ? FontWeight.w600 : FontWeight.normal,
+          const SizedBox(height: 8),
+          // Time window and controls row
+          Row(
+            children: [
+              Text("Window:", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.grey[300]!),
                 ),
-              );
-            }),
+                child: DropdownButton<double>(
+                  value: timeWindowSeconds,
+                  isDense: true,
+                  underline: Container(),
+                  style: const TextStyle(fontSize: 12, color: Colors.black),
+                  items: [5.0, 10.0, 15.0, 20.0, 30.0]
+                      .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null && !isMeasuring) {
+                      setState(() {
+                        timeWindowSeconds = value;
+                        _clearDataInChart();
+                      });
+                    }
+                  },
+                ),
+              ),
+              const Spacer(),
+              // Control buttons - compact
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isMeasuring ? const Color(0xFFF44336) : const Color(0xFF4CAF50),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  minimumSize: const Size(0, 32),
+                ),
+                onPressed: _numberOfSelectedChannels > 0 ? () {
+                  if (isMeasuring) {
+                    _resetMeasuring();
+                  } else {
+                    setState(() {
+                      isMeasuring = true;
+                    });
+                    subscribeCharacteristic();
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    });
+                  }
+                } : null,
+                child: Text(
+                  isMeasuring ? 'Stop' : 'Start',
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196F3),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  minimumSize: const Size(0, 32),
+                ),
+                onPressed: samples.isNotEmpty ? _handleSaveRecordInFile : null,
+                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              ),
+            ],
           ),
           if (_numberOfSelectedChannels == 0)
             Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text("Please select at least one channel", style: TextStyle(color: Colors.red[600], fontSize: 12)),
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text("Select at least one channel", style: TextStyle(color: Colors.red[600], fontSize: 11)),
             ),
         ],
       ),
@@ -327,168 +405,61 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
         color: const Color(0xFFF8F9FA),
         child: Column(
           children: [
-            // Channel selector
-            _buildChannelSelector(),
+            // Compact controls
+            _buildCompactControls(),
 
-            // Time window selector
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text(
-                    "Time window:",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: DropdownButton<double>(
-                      value: timeWindowSeconds,
-                      underline: Container(),
-                      items:
-                          [5.0, 10.0, 15.0, 20.0, 30.0]
-                              .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
-                              .toList(),
-                      onChanged: (value) {
-                        if (value != null && !isMeasuring) {
-                          setState(() {
-                            timeWindowSeconds = value;
-                            _clearDataInChart();
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Charts
+            // Charts - maximized space
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children:
-                      selectedChannelIndices
-                          .map(
-                            (channelIndex) => Container(
-                              margin: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    spreadRadius: 2,
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+              child: selectedChannelIndices.isEmpty
+                  ? Center(
+                      child: Text(
+                        "Please select at least one channel to display",
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: selectedChannelIndices.map((channelIndex) => Container(
+                          margin: const EdgeInsets.all(4.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.15),
+                                spreadRadius: 1,
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SizedBox(
-                                  width: width - 50,
-                                  height:
-                                      _numberOfSelectedChannels == 1
-                                          ? 400
-                                          : (_numberOfSelectedChannels <= 3 ? 250 : 200),
-                                  child: ECGChartWidget(
-                                    channelIndex: channelIndex,
-                                    legendTitle: channelNames[channelIndex],
-                                    chartColor: chartColors[channelIndex],
-                                    chartData: channelChartData[channelIndex],
-                                    crosshairBehavior: crosshairBehaviors[channelIndex],
-                                    timeWindowSeconds: timeWindowSeconds,
-                                    onRendererCreated: (controller) {
-                                      if (mounted) {
-                                        chartSeriesControllers[channelIndex] = controller;
-                                      }
-                                    },
-                                  ),
-                                ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6.0),
+                            child: SizedBox(
+                              width: width - 20,
+                              height: _numberOfSelectedChannels == 1 
+                                  ? size.height * 0.7 // Use 70% of screen height for single chart
+                                  : (_numberOfSelectedChannels <= 2 
+                                      ? size.height * 0.35 // Use 35% for 2 charts
+                                      : size.height * 0.25), // Use 25% for 3+ charts
+                              child: ECGChartWidget(
+                                channelIndex: channelIndex,
+                                legendTitle: channelNames[channelIndex],
+                                chartColor: chartColors[channelIndex],
+                                chartData: channelChartData[channelIndex],
+                                crosshairBehavior: crosshairBehaviors[channelIndex],
+                                timeWindowSeconds: timeWindowSeconds,
+                                onRendererCreated: (controller) {
+                                  if (mounted) {
+                                    chartSeriesControllers[channelIndex] = controller;
+                                  }
+                                },
                               ),
                             ),
-                          )
-                          .toList(),
-                ),
-              ),
-            ),
-
-            // Control buttons
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 3,
-                    offset: const Offset(0, -1),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isMeasuring ? const Color(0xFFF44336) : const Color(0xFF4CAF50),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        )).toList(),
+                      ),
                     ),
-                    onPressed:
-                        _numberOfSelectedChannels > 0
-                            ? () {
-                              if (isMeasuring) {
-                                _resetMeasuring();
-                              } else {
-                                setState(() {
-                                  isMeasuring = true;
-                                });
-                                subscribeCharacteristic();
-                                Future.delayed(const Duration(milliseconds: 500), () {
-                                  if (mounted) {
-                                    setState(() {});
-                                  }
-                                });
-                              }
-                            }
-                            : null,
-                    child: Text(
-                      isMeasuring ? 'Stop & Reset' : 'Start Measurement',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onPressed: samples.isNotEmpty ? _handleSaveRecordInFile : null,
-                    child: const Text('Save Data', style: TextStyle(fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

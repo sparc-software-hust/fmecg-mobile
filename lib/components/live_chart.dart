@@ -49,7 +49,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   ];
 
   // Channel names
-  final List<String> channelNames = ["Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"];
+  final List<String> channelNames = ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6"];
 
   @override
   void initState() {
@@ -103,7 +103,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     startTime = null;
     dataBuffer.clear();
     timeBuffer.clear();
-    
+
     for (int i = 0; i < chartSeriesControllers.length; i++) {
       chartSeriesControllers[i]?.updateDataSource(
         removedDataIndexes: List<int>.generate(channelChartData[i].length, (index) => index),
@@ -114,18 +114,12 @@ class _LiveChartSampleState extends State<LiveChartSample> {
 
   _startUpdateData() {
     startTime = DateTime.now();
-    
+
     // Timer 1 (Fast): Data collection at 250Hz (every 4ms)
-    dataCollectionTimer = Timer.periodic(
-      Duration(milliseconds: (1000 / samplingRateHz).round()), 
-      _collectDataOnly
-    );
-    
+    dataCollectionTimer = Timer.periodic(Duration(milliseconds: (1000 / samplingRateHz).round()), _collectDataOnly);
+
     // Timer 2 (Slower): UI updates at 20Hz (every 50ms)
-    uiUpdateTimer = Timer.periodic(
-      Duration(milliseconds: (1000 / uiUpdateRateHz).round()), 
-      _updateUIWithBufferedData
-    );
+    uiUpdateTimer = Timer.periodic(Duration(milliseconds: (1000 / uiUpdateRateHz).round()), _updateUIWithBufferedData);
   }
 
   double _getCurrentTimeInSeconds() {
@@ -213,6 +207,112 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     _processBluetoothData(fakeBluetoothPacket);
   }
 
+  Widget _buildCompactControls() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 1)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Text("Charts:", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: DropdownButton<int>(
+              value: numberOfChartsToShow,
+              isDense: true,
+              underline: Container(),
+              style: const TextStyle(fontSize: 12, color: Colors.black),
+              items: List.generate(
+                6,
+                (index) => DropdownMenuItem(
+                  value: index + 1,
+                  child: Text("${index + 1}"),
+                ),
+              ),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    numberOfChartsToShow = value;
+                    _clearChartData(cancelTimer: false);
+                  });
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text("Window:", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey[800])),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: DropdownButton<double>(
+              value: timeWindowSeconds,
+              isDense: true,
+              underline: Container(),
+              style: const TextStyle(fontSize: 12, color: Colors.black),
+              items: [5.0, 10.0, 15.0, 20.0, 30.0]
+                  .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    timeWindowSeconds = value;
+                    _clearChartData(cancelTimer: false);
+                  });
+                }
+              },
+            ),
+          ),
+          const Spacer(),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              minimumSize: const Size(0, 32),
+            ),
+            onPressed: () {
+              _startUpdateData();
+              Future.delayed(const Duration(milliseconds: 500), () {
+                setState(() {});
+              });
+            },
+            child: const Text('Start', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF44336),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              minimumSize: const Size(0, 32),
+            ),
+            onPressed: () async {
+              _clearChartData();
+            },
+            child: const Text('Stop', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -225,132 +325,38 @@ class _LiveChartSampleState extends State<LiveChartSample> {
           color: const Color(0xFFF8F9FA), // Light gray background
           child: Column(
             children: [
-              // Number of charts selector
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      "Number of charts:",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: DropdownButton<int>(
-                        value: numberOfChartsToShow,
-                        underline: Container(),
-                        items: List.generate(
-                          6,
-                          (index) => DropdownMenuItem(
-                            value: index + 1,
-                            child: Text("${index + 1} Chart${index == 0 ? '' : 's'}"),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              numberOfChartsToShow = value;
-                              _clearChartData(cancelTimer: false);
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Compact controls
+              _buildCompactControls(),
 
-              // Time window selector
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      "Time window:",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: DropdownButton<double>(
-                        value: timeWindowSeconds,
-                        underline: Container(),
-                        items:
-                            [5.0, 10.0, 15.0, 20.0, 30.0]
-                                .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
-                                .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              timeWindowSeconds = value;
-                              _clearChartData(cancelTimer: false);
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Charts
+              // Charts - maximized space
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: List.generate(
                       numberOfChartsToShow,
                       (index) => Container(
-                        margin: const EdgeInsets.all(8.0),
+                        margin: const EdgeInsets.all(4.0),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
+                              color: Colors.grey.withOpacity(0.15),
+                              spreadRadius: 1,
+                              blurRadius: 3,
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(6.0),
                           child: SizedBox(
-                            width: width - 50,
-                            height: numberOfChartsToShow == 1 ? 400 : (numberOfChartsToShow <= 3 ? 250 : 200),
+                            width: width - 20,
+                            height: numberOfChartsToShow == 1 
+                                ? size.height * 0.7 // Use 70% of screen height for single chart
+                                : (numberOfChartsToShow <= 2 
+                                    ? size.height * 0.35 // Use 35% for 2 charts
+                                    : size.height * 0.25), // Use 25% for 3+ charts
                             child: ECGChartWidget(
                               channelIndex: index,
                               legendTitle: channelNames[index],
@@ -369,54 +375,6 @@ class _LiveChartSampleState extends State<LiveChartSample> {
                   ),
                 ),
               ),
-
-              // Control buttons
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, -1),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4CAF50),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () {
-                        _startUpdateData();
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          setState(() {});
-                        });
-                      },
-                      child: const Text('Start Test', style: TextStyle(fontWeight: FontWeight.w600)),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF44336),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () async {
-                        _clearChartData();
-                      },
-                      child: const Text('Stop & Clear', style: TextStyle(fontWeight: FontWeight.w600)),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -427,7 +385,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   // Timer 1 (Fast): Collects data at 250Hz without updating UI
   void _collectDataOnly(Timer timer) {
     final double currentTime = _getCurrentTimeInSeconds();
-    
+
     // Generate 6 channels of data
     List<double> channelVoltageValues = [];
     for (int i = 0; i < 6; i++) {
@@ -436,33 +394,34 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       double highFrequencyNoise = 0.1 * math.sin(2 * math.pi * 50 * currentTime);
       channelVoltageValues.add(voltage + highFrequencyNoise);
     }
-    
+
     // Buffer the data instead of immediately updating the UI
     dataBuffer.add(channelVoltageValues);
     timeBuffer.add(currentTime);
-    
+
     count++;
+    print('🪵PPR count: ${count} ---- $currentTime PPR');
   }
 
   // Timer 2 (Slower): Updates UI with buffered data at 20Hz
   void _updateUIWithBufferedData(Timer timer) {
     if (dataBuffer.isEmpty) return;
-    
+
     final double maxTimeWindow = timeWindowSeconds;
     final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
-    
+
     // Process all buffered data
     for (int bufferIndex = 0; bufferIndex < dataBuffer.length; bufferIndex++) {
       final List<double> channelVoltageValues = dataBuffer[bufferIndex];
       final double currentTime = timeBuffer[bufferIndex];
-      
+
       for (
         int channelIndex = 0;
         channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length;
         channelIndex++
       ) {
         ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-        
+
         if (channelChartData[channelIndex].length >= maxDataPoints) {
           // Remove the oldest data point and add the new one (sliding window)
           channelChartData[channelIndex].removeAt(0);
@@ -473,7 +432,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
         }
       }
     }
-    
+
     // Update all chart controllers once with the batch of changes
     for (int channelIndex = 0; channelIndex < numberOfChartsToShow; channelIndex++) {
       if (chartSeriesControllers[channelIndex] != null) {
@@ -483,23 +442,20 @@ class _LiveChartSampleState extends State<LiveChartSample> {
           chartSeriesControllers[channelIndex]!.updateDataSource(
             removedDataIndexes: List.generate(dataPointsAdded, (index) => index),
             addedDataIndexes: List.generate(
-              dataPointsAdded, 
-              (index) => channelChartData[channelIndex].length - dataPointsAdded + index
+              dataPointsAdded,
+              (index) => channelChartData[channelIndex].length - dataPointsAdded + index,
             ),
           );
         } else {
           // For initial filling, just add the new data points
           final int startIndex = channelChartData[channelIndex].length - dataBuffer.length;
           chartSeriesControllers[channelIndex]!.updateDataSource(
-            addedDataIndexes: List.generate(
-              dataBuffer.length, 
-              (index) => startIndex + index
-            ),
+            addedDataIndexes: List.generate(dataBuffer.length, (index) => startIndex + index),
           );
         }
       }
     }
-    
+
     // Clear the buffer after processing
     dataBuffer.clear();
     timeBuffer.clear();
