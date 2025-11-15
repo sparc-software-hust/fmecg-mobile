@@ -4,7 +4,6 @@ import 'dart:math' as math;
 
 import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
-import 'package:fmecg_mobile/constants/color_constant.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
@@ -37,8 +36,8 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   List<CrosshairBehavior> crosshairBehaviors = [];
 
   late int count;
-  List<bool> selectedChannels = [true, true, false, false, false, false]; // Which channels to show
-  double timeWindowSeconds = 10.0;
+  List<bool> selectedChannels = [true, true, false, false, false, false];
+  double timeWindowSeconds = 5.0;
   double samplingRateHz = 250.0;
 
   late StreamSubscription<List<int>> subscribeStream;
@@ -112,6 +111,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   }
 
   _clearDataInChart({bool cancelStream = false}) {
+    // Clear chart data first
     for (int i = 0; i < channelChartData.length; i++) {
       channelChartData[i].clear();
     }
@@ -124,21 +124,24 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
       subscribeStream.cancel();
     }
 
+    // Reset chart controllers to null to avoid disposed controller errors
     for (int i = 0; i < chartSeriesControllers.length; i++) {
-      chartSeriesControllers[i]?.updateDataSource(
-        removedDataIndexes: List<int>.generate(channelChartData[i].length, (index) => index),
-      );
+      chartSeriesControllers[i] = null;
     }
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   _resetMeasuring() {
     _clearDataInChart(cancelStream: true);
-    setState(() {
-      isMeasuring = false;
-      isCalculated = false;
-    });
+    if (mounted) {
+      setState(() {
+        isMeasuring = false;
+        isCalculated = false;
+      });
+    }
   }
 
   _handleSaveRecordInFile() async {
@@ -149,10 +152,12 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
 
     await FilesManagement.handleSaveDataToFileV2(widget.fileToSave, samples);
 
-    setState(() {
-      samples.clear();
-      isMeasuring = false;
-    });
+    if (mounted) {
+      setState(() {
+        samples.clear();
+        isMeasuring = false;
+      });
+    }
     return Utils.showDialogWarningError(context, false, "Data saved successfully");
   }
 
@@ -162,6 +167,8 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   }
 
   void _processBluetoothData(List<int> bluetoothPacket) {
+    if (!mounted) return;
+
     try {
       // Use ECGPacketParser to process real Bluetooth data
       List<double> channelDecimalValues = EcgPacketParser.processECGDataPacketFromBluetooth(bluetoothPacket);
@@ -184,6 +191,8 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
   }
 
   void _updateChartDataWithRealData(List<double> channelVoltageValues) {
+    if (!mounted) return;
+    
     print('🪵KWH channelVoltageValues: ${channelVoltageValues} KWH');
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
@@ -200,20 +209,30 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
         channelChartData[i].removeAt(0);
         channelChartData[i].add(newData);
 
-        if (chartSeriesControllers[i] != null) {
-          chartSeriesControllers[i]!.updateDataSource(
-            removedDataIndexes: <int>[0],
-            addedDataIndexes: <int>[channelChartData[i].length - 1],
-          );
+        if (chartSeriesControllers[i] != null && mounted) {
+          try {
+            chartSeriesControllers[i]!.updateDataSource(
+              removedDataIndexes: <int>[0],
+              addedDataIndexes: <int>[channelChartData[i].length - 1],
+            );
+          } catch (e) {
+            // Handle disposed controller gracefully
+            print('Chart controller $i disposed, resetting to null');
+            chartSeriesControllers[i] = null;
+          }
         }
       } else {
         ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
         channelChartData[i].add(newData);
 
-        if (chartSeriesControllers[i] != null) {
-          chartSeriesControllers[i]!.updateDataSource(
-            addedDataIndexes: <int>[channelChartData[i].length - 1],
-          );
+        if (chartSeriesControllers[i] != null && mounted) {
+          try {
+            chartSeriesControllers[i]!.updateDataSource(addedDataIndexes: <int>[channelChartData[i].length - 1]);
+          } catch (e) {
+            // Handle disposed controller gracefully
+            print('Chart controller $i disposed, resetting to null');
+            chartSeriesControllers[i] = null;
+          }
         }
       }
     }
@@ -236,12 +255,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
+          BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 1)),
         ],
       ),
       child: Column(
@@ -254,10 +268,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                 "Select Channels:",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800]),
               ),
-              Text(
-                "${_numberOfSelectedChannels} selected",
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
+              Text("${_numberOfSelectedChannels} selected", style: TextStyle(fontSize: 14, color: Colors.grey[600])),
             ],
           ),
           const SizedBox(height: 12),
@@ -268,12 +279,16 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
               return FilterChip(
                 label: Text(channelNames[index]),
                 selected: selectedChannels[index],
-                onSelected: isMeasuring ? null : (bool selected) {
-                  setState(() {
-                    selectedChannels[index] = selected;
-                    _clearDataInChart();
-                  });
-                },
+                onSelected:
+                    isMeasuring
+                        ? null
+                        : (bool selected) {
+                          setState(() {
+                            selectedChannels[index] = selected;
+                            // Clear data but don't cancel stream since we're not measuring
+                            _clearDataInChart(cancelStream: false);
+                          });
+                        },
                 selectedColor: chartColors[index].withOpacity(0.3),
                 checkmarkColor: chartColors[index],
                 backgroundColor: Colors.grey[200],
@@ -287,10 +302,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
           if (_numberOfSelectedChannels == 0)
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                "Please select at least one channel",
-                style: TextStyle(color: Colors.red[600], fontSize: 12),
-              ),
+              child: Text("Please select at least one channel", style: TextStyle(color: Colors.red[600], fontSize: 12)),
             ),
         ],
       ),
@@ -371,39 +383,49 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  children: selectedChannelIndices.map((channelIndex) => Container(
-                    margin: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        width: width - 50,
-                        height: _numberOfSelectedChannels == 1 ? 400 : (_numberOfSelectedChannels <= 3 ? 250 : 200),
-                        child: ECGChartWidget(
-                          channelIndex: channelIndex,
-                          legendTitle: channelNames[channelIndex],
-                          chartColor: chartColors[channelIndex],
-                          chartData: channelChartData[channelIndex],
-                          crosshairBehavior: crosshairBehaviors[channelIndex],
-                          timeWindowSeconds: timeWindowSeconds,
-                          onRendererCreated: (controller) {
-                            chartSeriesControllers[channelIndex] = controller;
-                          },
-                        ),
-                      ),
-                    ),
-                  )).toList(),
+                  children:
+                      selectedChannelIndices
+                          .map(
+                            (channelIndex) => Container(
+                              margin: const EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  width: width - 50,
+                                  height:
+                                      _numberOfSelectedChannels == 1
+                                          ? 400
+                                          : (_numberOfSelectedChannels <= 3 ? 250 : 200),
+                                  child: ECGChartWidget(
+                                    channelIndex: channelIndex,
+                                    legendTitle: channelNames[channelIndex],
+                                    chartColor: chartColors[channelIndex],
+                                    chartData: channelChartData[channelIndex],
+                                    crosshairBehavior: crosshairBehaviors[channelIndex],
+                                    timeWindowSeconds: timeWindowSeconds,
+                                    onRendererCreated: (controller) {
+                                      if (mounted) {
+                                        chartSeriesControllers[channelIndex] = controller;
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                 ),
               ),
             ),
@@ -432,19 +454,24 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    onPressed: _numberOfSelectedChannels > 0 ? () {
-                      if (isMeasuring) {
-                        _resetMeasuring();
-                      } else {
-                        setState(() {
-                          isMeasuring = true;
-                        });
-                        subscribeCharacteristic();
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          setState(() {});
-                        });
-                      }
-                    } : null,
+                    onPressed:
+                        _numberOfSelectedChannels > 0
+                            ? () {
+                              if (isMeasuring) {
+                                _resetMeasuring();
+                              } else {
+                                setState(() {
+                                  isMeasuring = true;
+                                });
+                                subscribeCharacteristic();
+                                Future.delayed(const Duration(milliseconds: 500), () {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                });
+                              }
+                            }
+                            : null,
                     child: Text(
                       isMeasuring ? 'Stop & Reset' : 'Start Measurement',
                       style: const TextStyle(fontWeight: FontWeight.w600),
