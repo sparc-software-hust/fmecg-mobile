@@ -18,10 +18,14 @@ class LiveChartSample extends StatefulWidget {
 }
 
 class _LiveChartSampleState extends State<LiveChartSample> {
-  Timer? timer;
+  Timer? dataCollectionTimer;
+  Timer? uiUpdateTimer;
   List<List<ChartData>> channelChartData = [];
   List<ChartSeriesController?> chartSeriesControllers = [];
   List<CrosshairBehavior> crosshairBehaviors = [];
+
+  // Buffer for batching data updates
+  List<List<ChartData>> pendingDataUpdates = [];
 
   late int count;
   int numberOfChartsToShow = 2;
@@ -55,7 +59,8 @@ class _LiveChartSampleState extends State<LiveChartSample> {
   @override
   void dispose() {
     super.dispose();
-    timer?.cancel();
+    dataCollectionTimer?.cancel();
+    uiUpdateTimer?.cancel();
     _clearChartData();
   }
 
@@ -63,6 +68,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     channelChartData.clear();
     chartSeriesControllers.clear();
     crosshairBehaviors.clear();
+    pendingDataUpdates.clear();
 
     for (int i = 0; i < 6; i++) {
       channelChartData.add([]);
@@ -76,27 +82,40 @@ class _LiveChartSampleState extends State<LiveChartSample> {
           lineWidth: 2,
         ),
       );
+      pendingDataUpdates.add([]);
     }
   }
 
   _clearChartData({bool cancelTimer = true}) {
     if (cancelTimer) {
-      timer?.cancel();
+      dataCollectionTimer?.cancel();
+      uiUpdateTimer?.cancel();
     }
 
     for (int i = 0; i < channelChartData.length; i++) {
       channelChartData[i].clear();
+      if (i < pendingDataUpdates.length) {
+        pendingDataUpdates[i].clear();
+      }
     }
 
     samples = [];
     count = 0;
     startTime = null;
+    for (int i = 0; i < chartSeriesControllers.length; i++) {
+      chartSeriesControllers[i]?.updateDataSource(
+        removedDataIndexes: List<int>.generate(channelChartData[i].length, (index) => index),
+      );
+    }
     setState(() {});
   }
 
   _startUpdateData() {
     startTime = DateTime.now();
-    timer = Timer.periodic(const Duration(milliseconds: 4), _updateDataSource);
+    // Timer 1 (Fast): Runs at 250Hz (every 4ms) and only collects data
+    dataCollectionTimer = Timer.periodic(const Duration(milliseconds: 4), _collectDataOnly);
+    // Timer 2 (Slower): Runs at 25Hz (every 40ms) and updates the UI with batched data
+    uiUpdateTimer = Timer.periodic(const Duration(milliseconds: 40), _updateUI);
   }
 
   double _getCurrentTimeInSeconds() {
@@ -113,56 +132,64 @@ class _LiveChartSampleState extends State<LiveChartSample> {
       // Store the sample data
       samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
 
-      // Update chart data for each channel
-      _updateChartDataWithRealData(channelVoltageValues);
+      // Add data to pending updates buffer instead of updating UI directly
+      _addDataToPendingBuffer(channelVoltageValues);
     } catch (e) {
       print('Error processing Bluetooth data: $e');
       // Fallback to demo data if there's an error
-      _updateWithDemoData();
+      _collectDemoData();
     }
   }
 
-  void _updateChartDataWithRealData(List<double> channelVoltageValues) {
+  void _addDataToPendingBuffer(List<double> channelVoltageValues) {
     final double currentTime = _getCurrentTimeInSeconds();
-    final double maxTimeWindow = timeWindowSeconds;
-    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
 
     for (
       int channelIndex = 0;
       channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length;
       channelIndex++
     ) {
-      if (channelChartData[channelIndex].length == maxDataPoints) {
-        final index = currentTime % maxTimeWindow;
-        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-        channelChartData[channelIndex].removeAt(0);
-        channelChartData[channelIndex].add(newData);
-
-        // crosshairBehaviors[channelIndex].showByIndex(index);
-        // channelChartData[channelIndex][index] = newData;
-
-        // chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndexes: <int>[index]);
-        chartSeriesControllers[channelIndex]!.updateDataSource(
-          addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
-          removedDataIndexes: <int>[0],
-        );
-      } else {
-        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
-        channelChartData[channelIndex].add(newData);
-
-        if (chartSeriesControllers[channelIndex] != null) {
-          chartSeriesControllers[channelIndex]!.updateDataSource(
-            addedDataIndexes: <int>[channelChartData[channelIndex].length - 1],
-          );
-        }
-      }
+      ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+      pendingDataUpdates[channelIndex].add(newData);
     }
-
-    // Trigger setState to update the charts
-    setState(() {});
   }
 
-  void _updateWithDemoData() {
+  void _updateChartDataWithBufferedData() {
+    final double maxTimeWindow = timeWindowSeconds;
+    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
+
+    for (int channelIndex = 0; channelIndex < numberOfChartsToShow; channelIndex++) {
+      if (pendingDataUpdates[channelIndex].isEmpty) continue;
+
+      List<int> removedIndexes = [];
+      List<int> addedIndexes = [];
+
+      for (ChartData newData in pendingDataUpdates[channelIndex]) {
+        if (channelChartData[channelIndex].length >= maxDataPoints) {
+          // Remove the oldest point
+          channelChartData[channelIndex].removeAt(0);
+          removedIndexes.add(0);
+        }
+
+        // Add the new point
+        channelChartData[channelIndex].add(newData);
+        addedIndexes.add(channelChartData[channelIndex].length - 1);
+      }
+
+      // Clear the pending updates for this channel
+      pendingDataUpdates[channelIndex].clear();
+
+      // Update the chart controller with all changes at once
+      if (chartSeriesControllers[channelIndex] != null) {
+        chartSeriesControllers[channelIndex]!.updateDataSource(
+          removedDataIndexes: removedIndexes,
+          addedDataIndexes: addedIndexes,
+        );
+      }
+    }
+  }
+
+  void _collectDemoData() {
     // Generate fake Bluetooth packet for demo
     List<int> fakeBluetoothPacket = List.generate(22, (index) {
       if (index < 3) return _getRandomInt(192, 194); // Status bytes
@@ -356,6 +383,9 @@ class _LiveChartSampleState extends State<LiveChartSample> {
                       ),
                       onPressed: () {
                         _startUpdateData();
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          setState(() {});
+                        });
                       },
                       child: const Text('Start Test', style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
@@ -381,26 +411,30 @@ class _LiveChartSampleState extends State<LiveChartSample> {
     );
   }
 
-  void _updateDataSource(Timer timer) {
-    // _updateWithDemoData();
+  // Fast data collection timer (250Hz) - only collects data, no UI updates
+  void _collectDataOnly(Timer timer) {
     final double currentTime = _getCurrentTimeInSeconds();
 
     // Generate 6 channels of data
     List<double> channelVoltageValues = [];
     for (int i = 0; i < 6; i++) {
       // Create 6 different sine waves with different frequencies
-      // Formula: sin(2 * PI * frequency * time)
-      // We'll give each channel a simple frequency like 1Hz, 1.5Hz, 2Hz, etc.
       double frequency = 1.0 + (i * 0.5);
       double voltage = math.sin(2 * math.pi * frequency * currentTime);
 
-      // We'll also add a second, higher-frequency wave to make it look more like ECG
+      // Add higher-frequency component to make it look more like ECG
       double highFrequencyNoise = 0.1 * math.sin(2 * math.pi * 50 * currentTime);
 
       channelVoltageValues.add(voltage + highFrequencyNoise);
     }
-    _updateChartDataWithRealData(channelVoltageValues);
+    
+    _addDataToPendingBuffer(channelVoltageValues);
     count = count + 1;
+  }
+
+  // Slower UI update timer (25Hz) - updates the UI with batched data
+  void _updateUI(Timer timer) {
+    _updateChartDataWithBufferedData();
   }
 
   int _getRandomInt(int min, int max) {
