@@ -55,6 +55,9 @@ class EcgPacketParser {
     }
 
     // Handle legacy packet sizes for backward compatibility
+    if (bluetoothDataPacket.length == 13) {
+      return bluetoothDataPacket.sublist(3, 12);
+    }
     if (bluetoothDataPacket.length == 16) {
       return bluetoothDataPacket.sublist(3, 15);
     }

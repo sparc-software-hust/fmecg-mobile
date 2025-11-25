@@ -1,4 +1,5 @@
 import 'package:fmecg_mobile/components/live_chart.dart';
+import 'package:fmecg_mobile/components/live_chart_sample.dart';
 import 'package:fmecg_mobile/features/authentication/bloc/authentication_bloc.dart';
 import 'package:fmecg_mobile/features/authentication/bloc/authentication_event.dart';
 import 'package:fmecg_mobile/features/authentication/bloc/authentication_state.dart';
@@ -82,6 +83,7 @@ class MainMenuScreen extends StatelessWidget {
                     ),
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveChartSample()));
+                      // Navigator.push(context, MaterialPageRoute(builder: (context) => LiveLineChart(UniqueKey())));
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

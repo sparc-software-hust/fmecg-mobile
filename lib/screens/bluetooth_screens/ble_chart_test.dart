@@ -183,8 +183,10 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
         samples.clear();
       }
 
+      if (count % 10 == 0) {
+        _updateChartDataWithRealData(channelVoltageValues);
+      }
       // Update chart data for selected channels only
-      _updateChartDataWithRealData(channelVoltageValues);
     } catch (e) {
       print('Error processing Bluetooth data: $e');
     }
@@ -192,8 +194,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
 
   void _updateChartDataWithRealData(List<double> channelVoltageValues) {
     if (!mounted) return;
-    
-    print('🪵KWH channelVoltageValues: ${channelVoltageValues} KWH');
+
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
     final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
@@ -202,7 +203,7 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
     for (int i = 0; i < selectedChannels.length && i < channelVoltageValues.length; i++) {
       if (!selectedChannels[i]) continue; // Skip unselected channels
 
-      if (channelChartData[i].length == maxDataPoints) {
+      if (channelChartData[i].length == maxDataPoints / 5) {
         ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
 
         // Remove the first data point and add new one (sliding window)
@@ -271,12 +272,15 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                   runSpacing: 4.0,
                   children: List.generate(6, (index) {
                     return InkWell(
-                      onTap: isMeasuring ? null : () {
-                        setState(() {
-                          selectedChannels[index] = !selectedChannels[index];
-                          _clearDataInChart(cancelStream: false);
-                        });
-                      },
+                      onTap:
+                          isMeasuring
+                              ? null
+                              : () {
+                                setState(() {
+                                  selectedChannels[index] = !selectedChannels[index];
+                                  _clearDataInChart(cancelStream: false);
+                                });
+                              },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -320,9 +324,14 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                   isDense: true,
                   underline: Container(),
                   style: const TextStyle(fontSize: 12, color: Colors.black),
-                  items: [5.0, 10.0, 15.0, 20.0, 30.0]
-                      .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
-                      .toList(),
+                  items:
+                      [
+                        5.0,
+                        10.0,
+                        15.0,
+                        20.0,
+                        30.0,
+                      ].map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s"))).toList(),
                   onChanged: (value) {
                     if (value != null && !isMeasuring) {
                       setState(() {
@@ -343,21 +352,24 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   minimumSize: const Size(0, 32),
                 ),
-                onPressed: _numberOfSelectedChannels > 0 ? () {
-                  if (isMeasuring) {
-                    _resetMeasuring();
-                  } else {
-                    setState(() {
-                      isMeasuring = true;
-                    });
-                    subscribeCharacteristic();
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (mounted) {
-                        setState(() {});
-                      }
-                    });
-                  }
-                } : null,
+                onPressed:
+                    _numberOfSelectedChannels > 0
+                        ? () {
+                          if (isMeasuring) {
+                            _resetMeasuring();
+                          } else {
+                            setState(() {
+                              isMeasuring = true;
+                            });
+                            subscribeCharacteristic();
+                            Future.delayed(const Duration(milliseconds: 500), () {
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            });
+                          }
+                        }
+                        : null,
                 child: Text(
                   isMeasuring ? 'Stop' : 'Start',
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
@@ -410,56 +422,65 @@ class _BleLiveChartTestState extends State<BleLiveChartTest> {
 
             // Charts - maximized space
             Expanded(
-              child: selectedChannelIndices.isEmpty
-                  ? Center(
-                      child: Text(
-                        "Please select at least one channel to display",
-                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              child:
+                  selectedChannelIndices.isEmpty
+                      ? Center(
+                        child: Text(
+                          "Please select at least one channel to display",
+                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                        ),
+                      )
+                      : SingleChildScrollView(
+                        child: Column(
+                          children:
+                              selectedChannelIndices
+                                  .map(
+                                    (channelIndex) => Container(
+                                      margin: const EdgeInsets.all(4.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.15),
+                                            spreadRadius: 1,
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(6.0),
+                                        child: SizedBox(
+                                          width: width - 20,
+                                          height:
+                                              _numberOfSelectedChannels == 1
+                                                  ? size.height *
+                                                      0.7 // Use 70% of screen height for single chart
+                                                  : (_numberOfSelectedChannels <= 2
+                                                      ? size.height *
+                                                          0.35 // Use 35% for 2 charts
+                                                      : size.height * 0.25), // Use 25% for 3+ charts
+                                          child: ECGChartWidget(
+                                            channelIndex: channelIndex,
+                                            legendTitle: channelNames[channelIndex],
+                                            chartColor: chartColors[channelIndex],
+                                            chartData: channelChartData[channelIndex],
+                                            crosshairBehavior: crosshairBehaviors[channelIndex],
+                                            timeWindowSeconds: timeWindowSeconds,
+                                            onRendererCreated: (controller) {
+                                              if (mounted) {
+                                                chartSeriesControllers[channelIndex] = controller;
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
                       ),
-                    )
-                  : SingleChildScrollView(
-                      child: Column(
-                        children: selectedChannelIndices.map((channelIndex) => Container(
-                          margin: const EdgeInsets.all(4.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.15),
-                                spreadRadius: 1,
-                                blurRadius: 3,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(6.0),
-                            child: SizedBox(
-                              width: width - 20,
-                              height: _numberOfSelectedChannels == 1 
-                                  ? size.height * 0.7 // Use 70% of screen height for single chart
-                                  : (_numberOfSelectedChannels <= 2 
-                                      ? size.height * 0.35 // Use 35% for 2 charts
-                                      : size.height * 0.25), // Use 25% for 3+ charts
-                              child: ECGChartWidget(
-                                channelIndex: channelIndex,
-                                legendTitle: channelNames[channelIndex],
-                                chartColor: chartColors[channelIndex],
-                                chartData: channelChartData[channelIndex],
-                                crosshairBehavior: crosshairBehaviors[channelIndex],
-                                timeWindowSeconds: timeWindowSeconds,
-                                onRendererCreated: (controller) {
-                                  if (mounted) {
-                                    chartSeriesControllers[channelIndex] = controller;
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                        )).toList(),
-                      ),
-                    ),
             ),
           ],
         ),

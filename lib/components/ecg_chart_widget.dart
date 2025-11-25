@@ -40,20 +40,16 @@ class _ECGChartWidgetState extends State<ECGChartWidget> {
         title: ChartTitle(
           text: widget.legendTitle,
           alignment: ChartAlignment.center,
-          textStyle: TextStyle(
-            color: widget.chartColor,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: TextStyle(color: widget.chartColor, fontSize: 14, fontWeight: FontWeight.w600),
         ),
         crosshairBehavior: widget.crosshairBehavior,
         plotAreaBorderWidth: 1,
         plotAreaBorderColor: Colors.grey[600],
         primaryXAxis: NumericAxis(
-          title: AxisTitle(
-            text: 'Time (seconds)',
-            textStyle: TextStyle(color: Colors.grey[300], fontSize: 12),
-          ),
+          title: AxisTitle(text: 'Time (seconds)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
+          // minimum: 0,
+          // maximum: 10,
+          // maximum: widget.timeWindowSeconds,
           interval: widget.timeWindowSeconds / 5, // 5 intervals on x-axis
           interactiveTooltip: const InteractiveTooltip(enable: false),
           edgeLabelPlacement: EdgeLabelPlacement.shift,
@@ -63,10 +59,7 @@ class _ECGChartWidgetState extends State<ECGChartWidget> {
           axisLine: AxisLine(color: Colors.grey[600]),
         ),
         primaryYAxis: NumericAxis(
-          title: AxisTitle(
-            text: 'Voltage (V)',
-            textStyle: TextStyle(color: Colors.grey[300], fontSize: 12),
-          ),
+          title: AxisTitle(text: 'Voltage (V)', textStyle: TextStyle(color: Colors.grey[300], fontSize: 12)),
           interactiveTooltip: const InteractiveTooltip(enable: false),
           edgeLabelPlacement: EdgeLabelPlacement.shift,
           majorGridLines: MajorGridLines(width: 0.5, color: Colors.grey[700]),
