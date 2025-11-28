@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:fmecg_mobile/constants/color_constant.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
-import 'package:fmecg_mobile/screens/bluetooth_screens/ble_chart_test.dart';
+import 'package:fmecg_mobile/screens/bluetooth_screens/ble_live_chart.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -12,14 +12,14 @@ Uuid uartUUID = Uuid.parse("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
 Uuid uartRX = Uuid.parse("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
 Uuid uartTX = Uuid.parse("6E400003-B5A3-F393-E0A9-E50E24DCCA9E");
 
-class BleScanningAndConnectingScreen extends StatefulWidget {
-  const BleScanningAndConnectingScreen({Key? key}) : super(key: key);
+class BleConnectionScreen extends StatefulWidget {
+  const BleConnectionScreen({Key? key}) : super(key: key);
 
   @override
-  State<BleScanningAndConnectingScreen> createState() => _BleScanningAndConnectingScreenState();
+  State<BleConnectionScreen> createState() => _BleConnectionScreenState();
 }
 
-class _BleScanningAndConnectingScreenState extends State<BleScanningAndConnectingScreen> {
+class _BleConnectionScreenState extends State<BleConnectionScreen> {
   final flutterReactiveBle = FlutterReactiveBle();
   List<DiscoveredDevice> devices = [];
   DiscoveredDevice? deviceConnected;
@@ -64,25 +64,11 @@ class _BleScanningAndConnectingScreenState extends State<BleScanningAndConnectin
     });
   }
 
-  // void _startTimerScanningBluetooth() {
-  //   _timerScanning = Timer.periodic(const Duration(seconds: 1), (timer) {
-  //     setState(() {
-  //       if (_timerScanningLength > 0) {
-  //         _timerScanningLength --;
-  //       } else {
-  //         _stopScanning();
-  //         _timerScanning?.cancel();
-  //       }
-  //     });
-  //   });
-  // }
-
   void _stopScanning() {
     _scanStream?.cancel();
     setState(() {
       _isScanning = false;
     });
-    // _timerScanning?.cancel();
   }
 
   void _connectDeviceAndNavigate(String deviceId) async {
@@ -155,7 +141,7 @@ class _BleScanningAndConnectingScreenState extends State<BleScanningAndConnectin
         context,
         MaterialPageRoute(
           builder:
-              (context) => BleLiveChartTest(
+              (context) => BleLiveChart(
                 deviceConnected: deviceConnected!,
                 fileToSave: fileToSave,
                 bluetoothCharacteristic: characteristicToReceiveData,

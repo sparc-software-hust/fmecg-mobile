@@ -31,19 +31,6 @@ class Utils {
     return timestamp;
   }
 
-  static Future<int> getUserId() async {
-    // final User? user = context.read<UserProvider>().user;
-    // final SharedPreferences preferences = await SharedPreferences.getInstance();
-    // final Map userDataDecoded = json.decode((preferences.getString('userData') ?? ""));
-    // final int? userId = userDataDecoded["userId"];
-    // if (userId != null) {
-    //   return userId;
-    // } else {
-    //   return -1;
-    // }
-    return 1;
-  }
-
   static Future<bool> requestManageStorage() async {
     final PermissionStatus status = await Permission.manageExternalStorage.request();
     if (status == PermissionStatus.granted) {

@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 )
-                : LiveChartSample(fileToSave: fileToSave, callBackToPreview: () => setState(() => isShowChart = false)),
+                : LiveChartDemo(fileToSave: fileToSave, callBackToPreview: () => setState(() => isShowChart = false)),
             const SizedBox(height: 20),
             Container(
               alignment: Alignment.topLeft,

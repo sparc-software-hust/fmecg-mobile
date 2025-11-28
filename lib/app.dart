@@ -1,25 +1,18 @@
 import 'package:fmecg_mobile/components/live_chart.dart';
-import 'package:fmecg_mobile/components/live_chart_sample.dart';
-import 'package:fmecg_mobile/features/authentication/bloc/authentication_bloc.dart';
-import 'package:fmecg_mobile/features/authentication/bloc/authentication_event.dart';
-import 'package:fmecg_mobile/features/authentication/bloc/authentication_state.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';
-import 'package:fmecg_mobile/screens/login_screen/log_in_screen.dart';
-import 'package:fmecg_mobile/screens/main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const MainMenuScreen();
+    return const MainScreen();
   }
 }
 
-class MainMenuScreen extends StatelessWidget {
-  const MainMenuScreen({Key? key}) : super(key: key);
+class MainScreen extends StatelessWidget {
+  const MainScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -82,15 +75,14 @@ class MainMenuScreen extends StatelessWidget {
                       elevation: 2,
                     ),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveChartSample()));
-                      // Navigator.push(context, MaterialPageRoute(builder: (context) => LiveLineChart(UniqueKey())));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const LiveChartDemo()));
                     },
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.play_circle_outline, size: 28),
-                        const SizedBox(width: 12),
-                        const Text('Demo Mode', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                        SizedBox(width: 12),
+                        Text('Demo Mode', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -126,12 +118,12 @@ class MainMenuScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const BleReactiveScreen()));
                     },
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.bluetooth, size: 28),
-                        const SizedBox(width: 12),
-                        const Text('Bluetooth ECG Mode', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                        SizedBox(width: 12),
+                        Text('Bluetooth ECG Mode', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -169,36 +161,6 @@ class MainMenuScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class BlocNavigate extends StatefulWidget {
-  const BlocNavigate({Key? key}) : super(key: key);
-
-  @override
-  State<BlocNavigate> createState() => _BlocNavigateState();
-}
-
-class _BlocNavigateState extends State<BlocNavigate> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<AuthenticationBloc>().add(CheckAutoLogin());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-      builder: (context, state) {
-        if (state is AuthenticationSuccess) {
-          return const MainScreen();
-        } else if (state is AuthenticationLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else {
-          return const SignInScreen();
-        }
-      },
     );
   }
 }

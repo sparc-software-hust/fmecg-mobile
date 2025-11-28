@@ -1,11 +1,6 @@
-import 'package:fmecg_mobile/screens/home_screen.dart';
 import 'package:fmecg_mobile/screens/login_screen/sign_up_screen.dart';
-import 'package:fmecg_mobile/screens/main_screen.dart';
-import 'package:fmecg_mobile/screens/new_screens/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'dart:convert';
 import 'dart:async';
 import '../../providers/auth_provider.dart';
 
@@ -148,10 +143,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                         );
 
                                         Future.delayed(const Duration(seconds: 2), () {
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => const MainScreen()),
-                                          );
+                                          // Navigator.pushReplacement(
+                                          //   context,
+                                          //   MaterialPageRoute(builder: (context) => const MainScreen()),
+                                          // );
                                         });
                                       }
                                     },

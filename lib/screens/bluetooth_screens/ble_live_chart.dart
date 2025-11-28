@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
@@ -13,8 +12,8 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class BleLiveChartTest extends StatefulWidget {
-  const BleLiveChartTest({
+class BleLiveChart extends StatefulWidget {
+  const BleLiveChart({
     Key? key,
     required this.bluetoothCharacteristic,
     required this.fileToSave,
@@ -26,10 +25,10 @@ class BleLiveChartTest extends StatefulWidget {
   final File fileToSave;
 
   @override
-  State<BleLiveChartTest> createState() => _BleLiveChartTestState();
+  State<BleLiveChart> createState() => _BleLiveChartState();
 }
 
-class _BleLiveChartTestState extends State<BleLiveChartTest> {
+class _BleLiveChartState extends State<BleLiveChart> {
   final flutterReactiveBle = FlutterReactiveBle();
   List<List<ChartData>> channelChartData = [];
   List<ChartSeriesController?> chartSeriesControllers = [];

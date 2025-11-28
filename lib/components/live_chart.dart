@@ -8,16 +8,16 @@ import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class LiveChartSample extends StatefulWidget {
-  const LiveChartSample({Key? key, this.fileToSave, this.callBackToPreview}) : super(key: key);
+class LiveChartDemo extends StatefulWidget {
+  const LiveChartDemo({Key? key, this.fileToSave, this.callBackToPreview}) : super(key: key);
   final File? fileToSave;
   final VoidCallback? callBackToPreview;
 
   @override
-  State<LiveChartSample> createState() => _LiveChartSampleState();
+  State<LiveChartDemo> createState() => _LiveChartDemoState();
 }
 
-class _LiveChartSampleState extends State<LiveChartSample> {
+class _LiveChartDemoState extends State<LiveChartDemo> {
   Timer? dataCollectionTimer;
   Timer? uiUpdateTimer;
   List<List<ChartData>> channelChartData = [];
@@ -232,13 +232,7 @@ class _LiveChartSampleState extends State<LiveChartSample> {
               isDense: true,
               underline: Container(),
               style: const TextStyle(fontSize: 12, color: Colors.black),
-              items: List.generate(
-                6,
-                (index) => DropdownMenuItem(
-                  value: index + 1,
-                  child: Text("${index + 1}"),
-                ),
-              ),
+              items: List.generate(6, (index) => DropdownMenuItem(value: index + 1, child: Text("${index + 1}"))),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
@@ -264,9 +258,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
               isDense: true,
               underline: Container(),
               style: const TextStyle(fontSize: 12, color: Colors.black),
-              items: [5.0, 10.0, 15.0, 20.0, 30.0]
-                  .map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s")))
-                  .toList(),
+              items:
+                  [
+                    5.0,
+                    10.0,
+                    15.0,
+                    20.0,
+                    30.0,
+                  ].map((seconds) => DropdownMenuItem(value: seconds, child: Text("${seconds.toInt()}s"))).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() {
@@ -352,11 +351,14 @@ class _LiveChartSampleState extends State<LiveChartSample> {
                           padding: const EdgeInsets.all(6.0),
                           child: SizedBox(
                             width: width - 20,
-                            height: numberOfChartsToShow == 1 
-                                ? size.height * 0.7 // Use 70% of screen height for single chart
-                                : (numberOfChartsToShow <= 2 
-                                    ? size.height * 0.35 // Use 35% for 2 charts
-                                    : size.height * 0.25), // Use 25% for 3+ charts
+                            height:
+                                numberOfChartsToShow == 1
+                                    ? size.height *
+                                        0.7 // Use 70% of screen height for single chart
+                                    : (numberOfChartsToShow <= 2
+                                        ? size.height *
+                                            0.35 // Use 35% for 2 charts
+                                        : size.height * 0.25), // Use 25% for 3+ charts
                             child: ECGChartWidget(
                               channelIndex: index,
                               legendTitle: channelNames[index],

@@ -1,7 +1,6 @@
 import 'package:fmecg_mobile/controllers/ecg_record_controller.dart';
 import 'package:fmecg_mobile/providers/ecg_provider.dart';
 import 'package:fmecg_mobile/screens/history_screens/history_record_chart.dart';
-import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -21,8 +20,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void getAllRecords() async {
-    final int userId = await Utils.getUserId();
-    ECGRecordController.getAllECGRecords(userId);
+    const dumpUserId = 0;
+    ECGRecordController.getAllECGRecords(dumpUserId);
   }
 
   @override
