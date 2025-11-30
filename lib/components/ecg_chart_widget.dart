@@ -6,7 +6,7 @@ class ECGChartWidget extends StatefulWidget {
   final int channelIndex;
   final String legendTitle;
   final Color chartColor;
-  final List<ChartData> chartData;
+  final List<EcgDataPoint> chartData;
   final CrosshairBehavior crosshairBehavior;
   final double timeWindowSeconds;
   final Function(ChartSeriesController) onRendererCreated;
@@ -68,7 +68,7 @@ class _ECGChartWidgetState extends State<ECGChartWidget> {
           axisLine: AxisLine(color: Colors.grey[600]),
         ),
         series: [
-          FastLineSeries<ChartData, double>(
+          FastLineSeries<EcgDataPoint, double>(
             enableTooltip: false,
             onRendererCreated: (ChartSeriesController controller) {
               widget.onRendererCreated(controller);
@@ -76,8 +76,8 @@ class _ECGChartWidgetState extends State<ECGChartWidget> {
             legendItemText: widget.legendTitle,
             dataSource: widget.chartData,
             color: widget.chartColor,
-            xValueMapper: (ChartData data, _) => data.x,
-            yValueMapper: (ChartData data, _) => data.y,
+            xValueMapper: (EcgDataPoint data, _) => data.x,
+            yValueMapper: (EcgDataPoint data, _) => data.y,
             width: 1,
           ),
         ],

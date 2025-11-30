@@ -20,7 +20,7 @@ class LiveChartDemo extends StatefulWidget {
 class _LiveChartDemoState extends State<LiveChartDemo> {
   Timer? dataCollectionTimer;
   Timer? uiUpdateTimer;
-  List<List<ChartData>> channelChartData = [];
+  List<List<EcgDataPoint>> channelChartData = [];
   List<ChartSeriesController?> chartSeriesControllers = [];
   List<CrosshairBehavior> crosshairBehaviors = [];
 
@@ -163,7 +163,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
         // final int index = count % maxDataPoints;
         // final point = currentTime % maxTimeWindow;
         //
-        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[channelIndex]);
         // crosshairBehaviors[channelIndex].showByIndex(index);
         // channelChartData[channelIndex][index] = newData;
         //
@@ -181,7 +181,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
           );
         }
       } else {
-        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[channelIndex]);
         channelChartData[channelIndex].add(newData);
 
         if (chartSeriesControllers[channelIndex] != null) {
@@ -422,7 +422,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
         channelIndex < numberOfChartsToShow && channelIndex < channelVoltageValues.length;
         channelIndex++
       ) {
-        ChartData newData = ChartData(currentTime, channelVoltageValues[channelIndex]);
+        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[channelIndex]);
 
         if (channelChartData[channelIndex].length >= maxDataPoints) {
           // Remove the oldest data point and add the new one (sliding window)

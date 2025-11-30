@@ -12,7 +12,7 @@ class OneChart extends StatefulWidget {
   });
 
   final Function(ChartSeriesController) setChartSeriesController;
-  final List<ChartData> chartData;
+  final List<EcgDataPoint> chartData;
   final String legendTitle;
   final CrosshairBehavior crosshairBehavior;
   final int xCount;
@@ -58,12 +58,12 @@ class _OneChartState extends State<OneChart> {
         edgeLabelPlacement: EdgeLabelPlacement.shift,
       ),
       series: [
-        FastLineSeries<ChartData, double>(
+        FastLineSeries<EcgDataPoint, double>(
           onRendererCreated: widget.setChartSeriesController,
           dataSource: widget.chartData,
           legendItemText: widget.legendTitle,
-          xValueMapper: (ChartData d, _) => d.x,
-          yValueMapper: (ChartData d, _) => d.y,
+          xValueMapper: (EcgDataPoint d, _) => d.x,
+          yValueMapper: (EcgDataPoint d, _) => d.y,
           animationDuration: 0,
           width: 2,
           color: const Color(0xFF2EC35D),
@@ -73,8 +73,8 @@ class _OneChartState extends State<OneChart> {
   }
 }
 
-class ChartData {
-  ChartData(this.x, this.y);
+class EcgDataPoint {
+  EcgDataPoint(this.x, this.y);
   final double x;
   final double y;
 }

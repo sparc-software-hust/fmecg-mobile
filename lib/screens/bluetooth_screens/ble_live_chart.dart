@@ -16,6 +16,7 @@ class BleLiveChart extends StatefulWidget {
   const BleLiveChart({
     Key? key,
     required this.bluetoothCharacteristic,
+    // remove file to save here and create inside the state AI!
     required this.fileToSave,
     required this.deviceConnected,
   }) : super(key: key);
@@ -30,7 +31,7 @@ class BleLiveChart extends StatefulWidget {
 
 class _BleLiveChartState extends State<BleLiveChart> {
   final flutterReactiveBle = FlutterReactiveBle();
-  List<List<ChartData>> channelChartData = [];
+  List<List<EcgDataPoint>> channelChartData = [];
   List<ChartSeriesController?> chartSeriesControllers = [];
   List<CrosshairBehavior> crosshairBehaviors = [];
 
@@ -169,23 +170,21 @@ class _BleLiveChartState extends State<BleLiveChart> {
     if (!mounted) return;
 
     try {
-      // Use ECGPacketParser to process real Bluetooth data
       List<double> channelDecimalValues = EcgPacketParser.processECGDataPacketFromBluetooth(bluetoothPacket);
       List<double> channelVoltageValues = EcgPacketParser.convertDecimalValuesToVoltageForDisplay(channelDecimalValues);
 
-      // Store the sample data with timestamp
-      samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
+      // samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
+      //
+      // if (samples.length >= 10000) {
+      //   FilesManagement.handleSaveDataToFileV2(widget.fileToSave, samples);
+      //   samples.clear();
+      // }
 
-      // Save to file periodically to prevent memory overflow
-      if (samples.length >= 10000) {
-        FilesManagement.handleSaveDataToFileV2(widget.fileToSave, samples);
-        samples.clear();
-      }
-
-      if (count % 10 == 0) {
+      print('🪵ALJ channelVoltageValues: ${channelVoltageValues} ALJ');
+      if (count % 1 == 0) {
+        // print('🪵SVM count: ${count} SVM');
         _updateChartDataWithRealData(channelVoltageValues);
       }
-      // Update chart data for selected channels only
     } catch (e) {
       print('Error processing Bluetooth data: $e');
     }
@@ -198,14 +197,12 @@ class _BleLiveChartState extends State<BleLiveChart> {
     final double maxTimeWindow = timeWindowSeconds;
     final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
 
-    // Update only selected channels
     for (int i = 0; i < selectedChannels.length && i < channelVoltageValues.length; i++) {
-      if (!selectedChannels[i]) continue; // Skip unselected channels
+      if (!selectedChannels[i]) continue;
 
       if (channelChartData[i].length == maxDataPoints / 5) {
-        ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
+        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[i]);
 
-        // Remove the first data point and add new one (sliding window)
         channelChartData[i].removeAt(0);
         channelChartData[i].add(newData);
 
@@ -216,20 +213,18 @@ class _BleLiveChartState extends State<BleLiveChart> {
               addedDataIndexes: <int>[channelChartData[i].length - 1],
             );
           } catch (e) {
-            // Handle disposed controller gracefully
             print('Chart controller $i disposed, resetting to null');
             chartSeriesControllers[i] = null;
           }
         }
       } else {
-        ChartData newData = ChartData(currentTime, channelVoltageValues[i]);
+        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[i]);
         channelChartData[i].add(newData);
 
         if (chartSeriesControllers[i] != null && mounted) {
           try {
             chartSeriesControllers[i]!.updateDataSource(addedDataIndexes: <int>[channelChartData[i].length - 1]);
           } catch (e) {
-            // Handle disposed controller gracefully
             print('Chart controller $i disposed, resetting to null');
             chartSeriesControllers[i] = null;
           }
@@ -241,11 +236,10 @@ class _BleLiveChartState extends State<BleLiveChart> {
   void subscribeCharacteristic() {
     startTime = DateTime.now();
     subscribeStream = flutterReactiveBle.subscribeToCharacteristic(widget.bluetoothCharacteristic).listen((value) {
-      // print('BLE data received: $value');
-
-      // Process the received Bluetooth data
       _processBluetoothData(value);
-      count++;
+      setState(() {
+        count += 1;
+      });
     });
   }
 

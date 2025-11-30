@@ -1,9 +1,4 @@
-import 'package:fmecg_mobile/features/authentication/bloc/authentication_bloc.dart';
-import 'package:fmecg_mobile/features/authentication/bloc/authentication_event.dart';
-import 'package:fmecg_mobile/models/user_model.dart';
-import 'package:fmecg_mobile/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../constants/color_constant.dart';
 
@@ -118,7 +113,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 icon: Icons.logout,
                 iconColor: Colors.redAccent,
                 onTap: () {
-                  context.read<AuthenticationBloc>().add(LogoutRequest());
+                  // context.read<AuthenticationBloc>().add(LogoutRequest());
                 },
               ),
             ],
