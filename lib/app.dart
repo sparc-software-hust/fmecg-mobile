@@ -1,4 +1,4 @@
-import 'package:fmecg_mobile/components/live_chart.dart';
+import 'package:fmecg_mobile/components/live_chart_demo.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';
 import 'package:flutter/material.dart';
 

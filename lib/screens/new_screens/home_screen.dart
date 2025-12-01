@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fmecg_mobile/components/live_chart.dart';
+import 'package:fmecg_mobile/components/live_chart_demo.dart';
 import 'package:fmecg_mobile/providers/user_provider.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_live_chart.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_screen.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fmecg_mobile/components/circular_avatar.dart';
-import 'package:fmecg_mobile/components/live_chart.dart';
+import 'package:fmecg_mobile/components/live_chart_demo.dart';
 import 'package:fmecg_mobile/constants/color_constant.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
 import 'package:fmecg_mobile/providers/auth_provider.dart';
