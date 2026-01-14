@@ -128,10 +128,16 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
   Future<void> _startUpdateData() async {
     startTime = DateTime.now();
 
-    // Initialize the high-frequency data saver if a file is provided
     if (widget.fileToSave != null) {
+      // Delete existing file and create a fresh one
+      final file = widget.fileToSave!;
+      if (await file.exists()) {
+        await file.delete();
+      }
+      await file.create(recursive: true);
+
       _dataSaver = HighFrequencyDataSaver(
-        file: widget.fileToSave!,
+        file: file,
         bufferSize: 250, // Flush every 1 second at 250Hz
         headers: const ['time', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6'],
       );
@@ -309,20 +315,10 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
                   Container(
                     width: 8,
                     height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    'REC',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red[700],
-                    ),
-                  ),
+                  Text('REC', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red[700])),
                 ],
               ),
             ),
