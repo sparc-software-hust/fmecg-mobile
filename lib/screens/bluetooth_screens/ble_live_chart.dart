@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
+import 'package:fmecg_mobile/controllers/high_frequency_data_saver.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
@@ -16,14 +17,11 @@ class BleLiveChart extends StatefulWidget {
   const BleLiveChart({
     Key? key,
     required this.bluetoothCharacteristic,
-    // remove file to save here and create inside the state AI!
-    required this.fileToSave,
     required this.deviceConnected,
   }) : super(key: key);
 
   final QualifiedCharacteristic bluetoothCharacteristic;
   final DiscoveredDevice deviceConnected;
-  final File fileToSave;
 
   @override
   State<BleLiveChart> createState() => _BleLiveChartState();
@@ -46,6 +44,10 @@ class _BleLiveChartState extends State<BleLiveChart> {
   bool isUploaded = false;
   bool isCalculated = false;
   DateTime? startTime;
+
+  // File management
+  File? _fileToSave;
+  HighFrequencyDataSaver? _dataSaver;
 
   // ECG-style chart colors for different channels
   final List<Color> chartColors = [
@@ -71,6 +73,7 @@ class _BleLiveChartState extends State<BleLiveChart> {
   void dispose() {
     super.dispose();
     _clearDataInChart();
+    _dataSaver?.close();
     if (isMeasuring) {
       subscribeStream.cancel();
     }
@@ -134,8 +137,14 @@ class _BleLiveChartState extends State<BleLiveChart> {
     }
   }
 
-  _resetMeasuring() {
+  _resetMeasuring() async {
     _clearDataInChart(cancelStream: true);
+    
+    // Close the data saver
+    await _dataSaver?.close();
+    _dataSaver = null;
+    _fileToSave = null;
+    
     if (mounted) {
       setState(() {
         isMeasuring = false;
@@ -144,13 +153,35 @@ class _BleLiveChartState extends State<BleLiveChart> {
     }
   }
 
+  Future<void> _initializeFileAndDataSaver() async {
+    // Create a new file for this recording session
+    _fileToSave = await FilesManagement.getFilePath();
+    
+    // Delete existing file and create a fresh one
+    if (await _fileToSave!.exists()) {
+      await _fileToSave!.delete();
+    }
+    await _fileToSave!.create(recursive: true);
+    
+    // Initialize the high-frequency data saver
+    _dataSaver = HighFrequencyDataSaver(
+      file: _fileToSave!,
+      bufferSize: 250, // Flush every 1 second at 250Hz
+      headers: const ['time', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6'],
+    );
+    await _dataSaver!.initialize();
+  }
+
   _handleSaveRecordInFile() async {
     if (isMeasuring) {
       subscribeStream.cancel();
     }
+    
+    // Close the data saver to flush remaining data
+    await _dataSaver?.close();
+    _dataSaver = null;
+    
     _clearDataInChart();
-
-    await FilesManagement.handleSaveDataToFileV2(widget.fileToSave, samples);
 
     if (mounted) {
       setState(() {
@@ -158,7 +189,8 @@ class _BleLiveChartState extends State<BleLiveChart> {
         isMeasuring = false;
       });
     }
-    return Utils.showDialogWarningError(context, false, "Data saved successfully");
+    
+    return Utils.showDialogWarningError(context, false, "Data saved successfully to ${_fileToSave?.path}");
   }
 
   double _getCurrentTimeInSeconds() {
@@ -173,16 +205,13 @@ class _BleLiveChartState extends State<BleLiveChart> {
       List<double> channelDecimalValues = EcgPacketParser.processECGDataPacketFromBluetooth(bluetoothPacket);
       List<double> channelVoltageValues = EcgPacketParser.convertDecimalValuesToVoltageForDisplay(channelDecimalValues);
 
-      // samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
-      //
-      // if (samples.length >= 10000) {
-      //   FilesManagement.handleSaveDataToFileV2(widget.fileToSave, samples);
-      //   samples.clear();
-      // }
+      final double currentTime = _getCurrentTimeInSeconds();
+      
+      // Save to CSV using the isolate-based saver (high frequency, non-blocking)
+      _dataSaver?.addDataPoint(currentTime, channelDecimalValues);
 
       print('🪵ALJ channelVoltageValues: ${channelVoltageValues} ALJ');
       if (count % 1 == 0) {
-        // print('🪵SVM count: ${count} SVM');
         _updateChartDataWithRealData(channelVoltageValues);
       }
     } catch (e) {
@@ -233,8 +262,12 @@ class _BleLiveChartState extends State<BleLiveChart> {
     }
   }
 
-  void subscribeCharacteristic() {
+  Future<void> subscribeCharacteristic() async {
     startTime = DateTime.now();
+    
+    // Initialize file and data saver before starting measurement
+    await _initializeFileAndDataSaver();
+    
     subscribeStream = flutterReactiveBle.subscribeToCharacteristic(widget.bluetoothCharacteristic).listen((value) {
       _processBluetoothData(value);
       setState(() {
@@ -336,6 +369,29 @@ class _BleLiveChartState extends State<BleLiveChart> {
                 ),
               ),
               const Spacer(),
+              // Show recording indicator if data saver is active
+              if (_dataSaver?.isInitialized == true)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.red[300]!),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 4),
+                      Text('REC', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red[700])),
+                    ],
+                  ),
+                ),
               // Control buttons - compact
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -347,14 +403,14 @@ class _BleLiveChartState extends State<BleLiveChart> {
                 ),
                 onPressed:
                     _numberOfSelectedChannels > 0
-                        ? () {
+                        ? () async {
                           if (isMeasuring) {
-                            _resetMeasuring();
+                            await _resetMeasuring();
                           } else {
                             setState(() {
                               isMeasuring = true;
                             });
-                            subscribeCharacteristic();
+                            await subscribeCharacteristic();
                             Future.delayed(const Duration(milliseconds: 500), () {
                               if (mounted) {
                                 setState(() {});
@@ -377,7 +433,7 @@ class _BleLiveChartState extends State<BleLiveChart> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   minimumSize: const Size(0, 32),
                 ),
-                onPressed: samples.isNotEmpty ? _handleSaveRecordInFile : null,
+                onPressed: _dataSaver?.isInitialized == true ? _handleSaveRecordInFile : null,
                 child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               ),
             ],
