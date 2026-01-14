@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:fmecg_mobile/utils/utils.dart';
+import 'package:fmecg_mobile/utils/platform_file_saver.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Class to manage file operations for saving ECG data.
+/// Uses PlatformFileSaver to abstract platform-specific paths.
 class FilesManagement {
   static Future<String> get _pathToSaveData async {
-    final directoryToSaveFile = Directory("/storage/self/primary/fm_ECG");
-    final directoryToSaveData = directoryToSaveFile.path + '/fmECG_data';
+    final baseDirectory = await PlatformFileSaver.getStorageDirectory();
+    final directoryToSaveData = '$baseDirectory/records';
     return directoryToSaveData;
   }
 
@@ -14,47 +17,29 @@ class FilesManagement {
     Directory(directoryPath).createSync(recursive: true);
   }
 
-  static setUpFileToSaveDataMeasurement() async {
+  static Future<File> setUpFileToSaveDataMeasurement() async {
     final directoryPath = await _pathToSaveData;
     final String fileNameAsTimestamp = Utils.getCurrentTimestamp().toString();
     return File('$directoryPath/$fileNameAsTimestamp.csv');
   }
 
-  static setUpFileSaveTxt() async {
+  static Future<File> setUpFileSaveTxt() async {
     final directoryPath = await _pathToSaveData;
     final String fileNameAsTimestamp = Utils.getCurrentTimestamp().toString();
     return File('$directoryPath/pcg_ppg_$fileNameAsTimestamp.txt');
   }
 
-  static convertRowToStringBeforeSaving(List<dynamic> row) {
-    String dataRow = row.join(",");
-    return dataRow;
-  }
-
   static void appendDataToFile(File file, List<dynamic> row) {
-    String data = convertRowToStringBeforeSaving(row);
-    data = data + "\n"; //xuống dòng khi lưu dữ liệu 1 row
+    String data = row.join(",");
+    data = "$data\n";
     file.writeAsStringSync(data, mode: FileMode.append);
   }
 
   static Future<void> handleSaveDataToFileV2(File file, List rawData, {String format = "csv"}) async {
-    String dataConverted = format == "txt" ? convertDataToTxtFormat(rawData) : convertDataToCSVFormat(rawData);
+    String dataConverted = format == "txt" 
+        ? rawData.join("\n") 
+        : rawData.join("\n").replaceAll(RegExp(r'\[|\]'), "");
     print('1233333333:$dataConverted');
-    await appendDataToFileV2(file, dataConverted);
-  }
-
-  static String convertDataToCSVFormat(List data) {
-    final removingBracketsRegex = RegExp(r'\[|\]');
-    String dataConverted = data.join("\n").replaceAll(removingBracketsRegex, "");
-    return dataConverted;
-  }
-
-  static String convertDataToTxtFormat(List data) {
-    String dataConverted = data.join("\n");
-    return dataConverted;
-  }
-
-  static Future<void> appendDataToFileV2(File file, String dataConverted) async {
     await file.writeAsString(dataConverted, mode: FileMode.append);
   }
 
@@ -65,7 +50,7 @@ class FilesManagement {
 
     if (preferences.containsKey(keyToSave)) {
       existingFilePath = preferences.getString(keyToSave)!;
-      existingFilePath = existingFilePath + '\n$filePath';
+      existingFilePath = '$existingFilePath\n$filePath';
       preferences.setString(keyToSave, existingFilePath);
     } else {
       existingFilePath = filePath;
