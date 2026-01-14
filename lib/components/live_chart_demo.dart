@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
+import 'package:fmecg_mobile/controllers/high_frequency_data_saver.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -38,6 +40,12 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
   bool isButtonEndMeasurement = true;
   DateTime? startTime;
 
+  // High-frequency data saver with isolate
+  HighFrequencyDataSaver? _dataSaver;
+
+  // Pre-allocated typed array for channel values (used in data collection)
+  final Float64List _channelValuesBuffer = Float64List(6);
+
   // ECG-style chart colors for different channels
   final List<Color> chartColors = [
     const Color(0xFF00FF41), // Bright green - classic ECG monitor color
@@ -63,6 +71,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
     super.dispose();
     dataCollectionTimer?.cancel();
     uiUpdateTimer?.cancel();
+    _dataSaver?.close();
     _clearChartData();
   }
 
@@ -88,11 +97,15 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
     }
   }
 
-  _clearChartData({bool cancelTimer = true}) {
+  Future<void> _clearChartData({bool cancelTimer = true}) async {
     if (cancelTimer) {
       dataCollectionTimer?.cancel();
       uiUpdateTimer?.cancel();
     }
+
+    // Close the data saver and flush remaining data
+    await _dataSaver?.close();
+    _dataSaver = null;
 
     for (int i = 0; i < channelChartData.length; i++) {
       channelChartData[i].clear();
@@ -112,8 +125,18 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
     setState(() {});
   }
 
-  _startUpdateData() {
+  Future<void> _startUpdateData() async {
     startTime = DateTime.now();
+
+    // Initialize the high-frequency data saver if a file is provided
+    if (widget.fileToSave != null) {
+      _dataSaver = HighFrequencyDataSaver(
+        file: widget.fileToSave!,
+        bufferSize: 250, // Flush every 1 second at 250Hz
+        headers: const ['time', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6'],
+      );
+      await _dataSaver!.initialize();
+    }
 
     // Timer 1 (Fast): Data collection at 250Hz (every 4ms)
     dataCollectionTimer = Timer.periodic(Duration(milliseconds: (1000 / samplingRateHz).round()), _collectDataOnly);
@@ -133,8 +156,13 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
       List<double> channelDecimalValues = EcgPacketParser.processECGDataPacketFromBluetooth(bluetoothPacket);
       List<double> channelVoltageValues = EcgPacketParser.convertDecimalValuesToVoltageForDisplay(channelDecimalValues);
 
+      final double currentTime = _getCurrentTimeInSeconds();
+
       // Store the sample data
-      samples.add([_getCurrentTimeInSeconds(), ...channelDecimalValues]);
+      samples.add([currentTime, ...channelDecimalValues]);
+
+      // Save to CSV using the isolate-based saver (high frequency, non-blocking)
+      _dataSaver?.addDataPoint(currentTime, channelDecimalValues);
 
       // Update chart data for each channel
       _updateChartDataWithRealData(channelVoltageValues);
@@ -158,16 +186,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
       channelIndex++
     ) {
       if (channelChartData[channelIndex].length == maxDataPoints) {
-        // print('Updating channel $channelIndex at time $currentTime with value ${channelVoltageValues[channelIndex]}');
-        //
-        // final int index = count % maxDataPoints;
-        // final point = currentTime % maxTimeWindow;
-        //
         EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[channelIndex]);
-        // crosshairBehaviors[channelIndex].showByIndex(index);
-        // channelChartData[channelIndex][index] = newData;
-        //
-        // chartSeriesControllers[channelIndex]!.updateDataSource(updatedDataIndexes: <int>[index]);
         channelChartData[channelIndex].removeAt(0);
 
         // Add the new point (at the end)
@@ -191,9 +210,6 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
         }
       }
     }
-
-    // Trigger setState to update the charts
-    // setState(() {});
   }
 
   void _updateWithDemoData() {
@@ -277,6 +293,39 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
             ),
           ),
           const Spacer(),
+          // Show recording indicator if data saver is active
+          if (_dataSaver?.isInitialized == true)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.red[300]!),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'REC',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4CAF50),
@@ -303,7 +352,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
               minimumSize: const Size(0, 32),
             ),
             onPressed: () async {
-              _clearChartData();
+              await _clearChartData();
             },
             child: const Text('Stop', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
           ),
@@ -388,17 +437,20 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
   void _collectDataOnly(Timer timer) {
     final double currentTime = _getCurrentTimeInSeconds();
 
-    // Generate 6 channels of data
-    List<double> channelVoltageValues = [];
+    // Generate 6 channels of data using pre-allocated typed array
     for (int i = 0; i < 6; i++) {
       double frequency = 1.0 + (i * 0.5);
       double voltage = math.sin(2 * math.pi * frequency * currentTime);
       double highFrequencyNoise = 0.1 * math.sin(2 * math.pi * 50 * currentTime);
-      channelVoltageValues.add(voltage + highFrequencyNoise);
+      _channelValuesBuffer[i] = voltage + highFrequencyNoise;
     }
 
-    // Buffer the data instead of immediately updating the UI
-    dataBuffer.add(channelVoltageValues);
+    // Save to CSV at 250Hz using the isolate-based saver (non-blocking)
+    // This uses the typed Float64List for better performance
+    _dataSaver?.addDataPointTyped(currentTime, _channelValuesBuffer);
+
+    // Buffer the data for UI updates (convert to List<double> for compatibility)
+    dataBuffer.add(List<double>.from(_channelValuesBuffer));
     timeBuffer.add(currentTime);
 
     count++;
