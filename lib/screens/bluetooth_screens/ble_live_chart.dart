@@ -14,11 +14,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class BleLiveChart extends StatefulWidget {
-  const BleLiveChart({
-    Key? key,
-    required this.bluetoothCharacteristic,
-    required this.deviceConnected,
-  }) : super(key: key);
+  const BleLiveChart({Key? key, required this.bluetoothCharacteristic, required this.deviceConnected})
+    : super(key: key);
 
   final QualifiedCharacteristic bluetoothCharacteristic;
   final DiscoveredDevice deviceConnected;
@@ -139,12 +136,12 @@ class _BleLiveChartState extends State<BleLiveChart> {
 
   _resetMeasuring() async {
     _clearDataInChart(cancelStream: true);
-    
+
     // Close the data saver
     await _dataSaver?.close();
     _dataSaver = null;
     _fileToSave = null;
-    
+
     if (mounted) {
       setState(() {
         isMeasuring = false;
@@ -156,13 +153,13 @@ class _BleLiveChartState extends State<BleLiveChart> {
   Future<void> _initializeFileAndDataSaver() async {
     // Create a new file for this recording session
     _fileToSave = await FilesManagement.getFilePath();
-    
+
     // Delete existing file and create a fresh one
     if (await _fileToSave!.exists()) {
       await _fileToSave!.delete();
     }
     await _fileToSave!.create(recursive: true);
-    
+
     // Initialize the high-frequency data saver
     _dataSaver = HighFrequencyDataSaver(
       file: _fileToSave!,
@@ -176,11 +173,11 @@ class _BleLiveChartState extends State<BleLiveChart> {
     if (isMeasuring) {
       subscribeStream.cancel();
     }
-    
+
     // Close the data saver to flush remaining data
     await _dataSaver?.close();
     _dataSaver = null;
-    
+
     _clearDataInChart();
 
     if (mounted) {
@@ -189,7 +186,7 @@ class _BleLiveChartState extends State<BleLiveChart> {
         isMeasuring = false;
       });
     }
-    
+
     return Utils.showDialogWarningError(context, false, "Data saved successfully to ${_fileToSave?.path}");
   }
 
@@ -206,7 +203,7 @@ class _BleLiveChartState extends State<BleLiveChart> {
       List<double> channelVoltageValues = EcgPacketParser.convertDecimalValuesToVoltageForDisplay(channelDecimalValues);
 
       final double currentTime = _getCurrentTimeInSeconds();
-      
+
       // Save to CSV using the isolate-based saver (high frequency, non-blocking)
       _dataSaver?.addDataPoint(currentTime, channelDecimalValues);
 
@@ -264,10 +261,10 @@ class _BleLiveChartState extends State<BleLiveChart> {
 
   Future<void> subscribeCharacteristic() async {
     startTime = DateTime.now();
-    
+
     // Initialize file and data saver before starting measurement
     await _initializeFileAndDataSaver();
-    
+
     subscribeStream = flutterReactiveBle.subscribeToCharacteristic(widget.bluetoothCharacteristic).listen((value) {
       _processBluetoothData(value);
       setState(() {

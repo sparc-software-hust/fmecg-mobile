@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:fmecg_mobile/constants/color_constant.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
 import 'package:fmecg_mobile/screens/bluetooth_screens/ble_live_chart.dart';
-import 'package:fmecg_mobile/utils/files_management.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 
 Uuid uartUUID = Uuid.parse("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
 Uuid uartRX = Uuid.parse("6E400002-B5A3-F393-E0A9-E50E24DCCA9E");
@@ -135,17 +134,12 @@ class _BleConnectionScreenState extends State<BleConnectionScreen> {
     final bool isAccessFiles = await Utils.requestManageStorage();
     _scanStream?.cancel();
     if (isAccessFiles) {
-      FilesManagement.createDirectoryFirstTimeWithDevice();
-      final File fileToSave = await FilesManagement.setUpFileToSaveDataMeasurement();
       Navigator.push(
         context,
         MaterialPageRoute(
           builder:
-              (context) => BleLiveChart(
-                deviceConnected: deviceConnected!,
-                fileToSave: fileToSave,
-                bluetoothCharacteristic: characteristicToReceiveData,
-              ),
+              (context) =>
+                  BleLiveChart(deviceConnected: deviceConnected!, bluetoothCharacteristic: characteristicToReceiveData),
         ),
       );
     } else {

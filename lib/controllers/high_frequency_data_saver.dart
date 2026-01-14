@@ -29,7 +29,7 @@ class _DataMessage {
 
 /// High-frequency data saver that runs file I/O in a separate isolate
 /// to prevent blocking the main UI thread.
-/// 
+///
 /// Optimized for 6-channel ECG data at 250Hz sampling rate.
 /// Uses typed Float64List for memory efficiency.
 class HighFrequencyDataSaver {
@@ -64,11 +64,8 @@ class HighFrequencyDataSaver {
     }
 
     _receivePort = ReceivePort();
-    
-    _isolate = await Isolate.spawn(
-      _isolateEntryPoint,
-      _IsolateConfig(_receivePort!.sendPort, file.path, headers),
-    );
+
+    _isolate = await Isolate.spawn(_isolateEntryPoint, _IsolateConfig(_receivePort!.sendPort, file.path, headers));
 
     // Wait for the isolate to send back its SendPort
     final completer = Completer<SendPort>();
@@ -87,10 +84,10 @@ class HighFrequencyDataSaver {
   }
 
   /// Add a single data point with timestamp and 6 channel values
-  /// 
+  ///
   /// [time] - timestamp in seconds
   /// [channelDecimalValues] - list of 6 decimal values from ECG channels
-  /// 
+  ///
   /// This method is designed to be called at 250Hz without blocking the UI
   void addDataPoint(double time, List<double> channelDecimalValues) {
     if (!_isInitialized || _sendPort == null) {
@@ -112,10 +109,10 @@ class HighFrequencyDataSaver {
   }
 
   /// Add a single data point using a pre-allocated Float64List
-  /// 
+  ///
   /// [time] - timestamp in seconds
   /// [channelDecimalValues] - Float64List of 6 decimal values from ECG channels
-  /// 
+  ///
   /// More efficient version when you already have a Float64List
   void addDataPointTyped(double time, Float64List channelDecimalValues) {
     if (!_isInitialized || _sendPort == null) {
@@ -142,17 +139,17 @@ class HighFrequencyDataSaver {
     }
 
     _sendPort?.send(_DataMessage.close());
-    
+
     // Give the isolate time to finish writing
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     _isolate?.kill(priority: Isolate.beforeNextEvent);
     _isolate = null;
     _receivePort?.close();
     _receivePort = null;
     _sendPort = null;
     _isInitialized = false;
-    
+
     print('[HighFrequencyDataSaver] Closed successfully');
   }
 
@@ -170,13 +167,13 @@ class HighFrequencyDataSaver {
       final file = File(config.filePath);
       final bool fileExists = file.existsSync();
       final bool fileIsEmpty = !fileExists || file.lengthSync() == 0;
-      
+
       sink = file.openWrite(mode: FileMode.append);
-      
+
       if (fileIsEmpty) {
         sink.writeln(config.headers.join(','));
       }
-      
+
       config.sendPort.send('File opened: ${config.filePath}');
     } catch (e) {
       config.sendPort.send('Error opening file: $e');
@@ -185,7 +182,7 @@ class HighFrequencyDataSaver {
 
     void flushBuffer() {
       if (buffer.isEmpty || sink == null) return;
-      
+
       final StringBuffer sb = StringBuffer();
       for (final line in buffer) {
         sb.writeln(line);

@@ -23,7 +23,6 @@ class ECGRecordController {
       final response = await Dio().post(url, data: fileToUpload);
     } catch (e, t) {
       // save filePath to preferences
-      FilesManagement.saveFilePathCaseNoInternet(filePath);
       print('error when upload file: $e $t');
     }
   }

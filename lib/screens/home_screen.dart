@@ -200,14 +200,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const BleReactiveScreen()));
                   },
                   temporaryNothing: () async {
-                    FilesManagement.createDirectoryFirstTimeWithDevice();
-                    fileToSave = await FilesManagement.setUpFileToSaveDataMeasurement();
+                    fileToSave = await FilesManagement.getFilePath();
                     setState(() {
                       isShowChart = true;
                     });
                   },
                 )
-                : LiveChartDemo(fileToSave: fileToSave, callBackToPreview: () => setState(() => isShowChart = false)),
+                : LiveChartDemo(callBackToPreview: () => setState(() => isShowChart = false)),
             const SizedBox(height: 20),
             Container(
               alignment: Alignment.topLeft,
