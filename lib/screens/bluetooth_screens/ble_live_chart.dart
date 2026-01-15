@@ -207,8 +207,7 @@ class _BleLiveChartState extends State<BleLiveChart> {
       // Save to CSV using the isolate-based saver (high frequency, non-blocking)
       _dataSaver?.addDataPoint(currentTime, channelDecimalValues);
 
-      print('🪵ALJ channelVoltageValues: ${channelVoltageValues} ALJ');
-      if (count % 1 == 0) {
+      if (count % 5 == 0) {
         _updateChartDataWithRealData(channelVoltageValues);
       }
     } catch (e) {
