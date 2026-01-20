@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 void main(List<String> args) async {
   // Configuration
   const String remoteUrl = 'https://api.fmecg.example.com/openapi.yaml';
-  const String localhostUrl = 'http://localhost:8080/openapi.yaml';
+  const String localhostUrl = 'http://localhost:4000/api/openapi/index.yaml';
   const String outputPath = 'openapi/api_spec.yaml';
 
   // Parse command line arguments
@@ -19,7 +19,7 @@ void main(List<String> args) async {
   print('Mode: $mode');
   print('');
 
-  if (mode == 'local' || mode == 'localhost') {
+  if (mode == 'local') {
     await downloadFromServer(localhostUrl, outputPath, 'localhost');
   } else if (mode == 'remote') {
     await downloadFromServer(remoteUrl, outputPath, 'remote');
@@ -61,7 +61,7 @@ Future<void> downloadFromServer(String url, String outputPath, String serverType
       print('');
       print('Tip: Check the URL and your internet connection');
       if (serverType == 'localhost') {
-        print('Tip: Make sure your local server is running on port 8080');
+        print('Tip: Make sure your local server is running on port 4000');
       }
       exit(1);
     }
@@ -84,17 +84,15 @@ void printUsage() {
   print('  dart scripts/download_openapi_spec.dart [mode]');
   print('');
   print('Modes:');
-  print('  remote    - Download OpenAPI spec from remote server (default)');
-  print('  local     - Download OpenAPI spec from localhost server');
-  print('  localhost - Same as local');
+  print('  remote - Download OpenAPI spec from remote server (default)');
+  print('  local  - Download OpenAPI spec from localhost server');
   print('');
   print('Examples:');
   print('  dart scripts/download_openapi_spec.dart remote');
   print('  dart scripts/download_openapi_spec.dart local');
-  print('  dart scripts/download_openapi_spec.dart localhost');
   print('  dart scripts/download_openapi_spec.dart');
   print('');
   print('Configuration:');
   print('  Remote URL: Edit remoteUrl in the script');
-  print('  Localhost URL: Edit localhostUrl in the script (default: http://localhost:8080/openapi.yaml)');
+  print('  Local URL: Edit localhostUrl in the script (default: http://localhost:4000/api/openapi/index.yaml)');
 }
