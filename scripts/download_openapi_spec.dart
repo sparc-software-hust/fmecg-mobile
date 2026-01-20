@@ -4,12 +4,12 @@ import 'package:http/http.dart' as http;
 void main(List<String> args) async {
   // Configuration
   const String remoteUrl = 'https://api.fmecg.example.com/openapi.yaml';
-  const String localSourcePath = 'openapi/api_spec_source.yaml';
+  const String localhostUrl = 'http://localhost:8080/openapi.yaml';
   const String outputPath = 'openapi/api_spec.yaml';
 
   // Parse command line arguments
   String mode = 'remote'; // default to remote
-  
+
   if (args.isNotEmpty) {
     mode = args[0].toLowerCase();
   }
@@ -19,56 +19,18 @@ void main(List<String> args) async {
   print('Mode: $mode');
   print('');
 
-  if (mode == 'local') {
-    await useLocalFile(localSourcePath, outputPath);
+  if (mode == 'local' || mode == 'localhost') {
+    await downloadFromServer(localhostUrl, outputPath, 'localhost');
   } else if (mode == 'remote') {
-    await downloadRemoteFile(remoteUrl, outputPath);
+    await downloadFromServer(remoteUrl, outputPath, 'remote');
   } else {
     printUsage();
     exit(1);
   }
 }
 
-Future<void> useLocalFile(String sourcePath, String outputPath) async {
-  print('Using local OpenAPI spec file...');
-  print('Source: $sourcePath');
-  print('Output: $outputPath');
-  print('');
-
-  final sourceFile = File(sourcePath);
-  
-  if (!await sourceFile.exists()) {
-    print('✗ Error: Local source file not found at: $sourcePath');
-    print('');
-    print('Please ensure the file exists at the specified location.');
-    exit(1);
-  }
-
-  try {
-    // Create openapi directory if it doesn't exist
-    final directory = Directory('openapi');
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
-      print('✓ Created openapi directory');
-    }
-
-    // Copy file to output location
-    final content = await sourceFile.readAsString();
-    final outputFile = File(outputPath);
-    await outputFile.writeAsString(content);
-    
-    final fileSize = await outputFile.length();
-    print('✓ Successfully copied local OpenAPI spec to: $outputPath');
-    print('✓ File size: $fileSize bytes');
-    exit(0);
-  } catch (e) {
-    print('✗ Error copying file: $e');
-    exit(1);
-  }
-}
-
-Future<void> downloadRemoteFile(String url, String outputPath) async {
-  print('Downloading OpenAPI spec from remote server...');
+Future<void> downloadFromServer(String url, String outputPath, String serverType) async {
+  print('Downloading OpenAPI spec from $serverType server...');
   print('URL: $url');
   print('Output: $outputPath');
   print('');
@@ -98,12 +60,19 @@ Future<void> downloadRemoteFile(String url, String outputPath) async {
       print('  Response: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
       print('');
       print('Tip: Check the URL and your internet connection');
+      if (serverType == 'localhost') {
+        print('Tip: Make sure your local server is running on port 8080');
+      }
       exit(1);
     }
   } catch (e) {
     print('✗ Error: $e');
     print('');
-    print('Tip: Check your internet connection or verify the remote URL');
+    if (serverType == 'localhost') {
+      print('Tip: Make sure your local server is running and accessible at $url');
+    } else {
+      print('Tip: Check your internet connection or verify the remote URL');
+    }
     exit(1);
   }
 }
@@ -115,11 +84,17 @@ void printUsage() {
   print('  dart scripts/download_openapi_spec.dart [mode]');
   print('');
   print('Modes:');
-  print('  remote  - Download OpenAPI spec from remote server (default)');
-  print('  local   - Use local OpenAPI spec file');
+  print('  remote    - Download OpenAPI spec from remote server (default)');
+  print('  local     - Download OpenAPI spec from localhost server');
+  print('  localhost - Same as local');
   print('');
   print('Examples:');
   print('  dart scripts/download_openapi_spec.dart remote');
   print('  dart scripts/download_openapi_spec.dart local');
+  print('  dart scripts/download_openapi_spec.dart localhost');
   print('  dart scripts/download_openapi_spec.dart');
+  print('');
+  print('Configuration:');
+  print('  Remote URL: Edit remoteUrl in the script');
+  print('  Localhost URL: Edit localhostUrl in the script (default: http://localhost:8080/openapi.yaml)');
 }
