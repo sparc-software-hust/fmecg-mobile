@@ -1,0 +1,170 @@
+---
+components:
+  responses: {}
+  schemas:
+    Record:
+      description: A record with file data
+      example:
+        file_size: 2048
+        file_url: http://localhost:4000/api/records/1/file
+        filename: ecg_data.json
+        id: 1
+        inserted_at: 2026-01-20T12:34:55Z
+        metadata:
+          patient_id: '12345'
+          test_date: 2026-01-20
+        updated_at: 2026-01-20T12:34:55Z
+      properties:
+        file_size:
+          description: File size in bytes
+          type: integer
+        file_url:
+          description: URL to access the file
+          type: string
+        filename:
+          description: Original filename
+          type: string
+        id:
+          description: Record ID
+          type: integer
+        inserted_at:
+          description: Creation timestamp
+          format: date-time
+          type: string
+        metadata:
+          description: Additional metadata
+          type: object
+        updated_at:
+          description: Update timestamp
+          format: date-time
+          type: string
+      required:
+        - filename
+        - file_url
+      title: Record
+      type: object
+    RecordFileResponse:
+      description: JSON file content response
+      example:
+        data:
+          ecg_readings:
+            - 1.2
+            - 1.5
+            - 1.8
+          sample_rate: 250
+      properties:
+        data:
+          description: File content as JSON
+          type: object
+      title: RecordFileResponse
+      type: object
+    RecordResponse:
+      description: Response schema for single record
+      example:
+        data:
+          file_size: 2048
+          file_url: http://localhost:4000/api/records/1/file
+          filename: ecg_data.json
+          id: 1
+          inserted_at: 2026-01-20T12:34:55Z
+          metadata:
+            patient_id: '12345'
+          updated_at: 2026-01-20T12:34:55Z
+      properties:
+        data:
+          $ref: '#/components/schemas/Record'
+      title: RecordResponse
+      type: object
+  securitySchemes:
+    jwtAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+info:
+  title: fmECG API
+  version: '1.0'
+openapi: 3.0.0
+paths:
+  /api/records:
+    post:
+      callbacks: {}
+      operationId: FmecgWeb.RecordController.create
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  description: File to upload
+                  format: binary
+                  type: string
+                metadata:
+                  description: Optional metadata (JSON string)
+                  type: object
+              required:
+                - file
+              type: object
+        description: File upload
+        required: false
+      responses:
+        201:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordResponse'
+          description: Record created
+        422:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Invalid file
+      summary: Upload a file and create a record
+      tags:
+        - records
+  /api/records/{id}/file:
+    get:
+      callbacks: {}
+      operationId: FmecgWeb.RecordController.show
+      parameters:
+        - description: Record ID
+          example: 1
+          in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordFileResponse'
+          description: File content
+        404:
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Record not found
+      summary: Get file content as JSON
+      tags:
+        - records
+  /api/users:
+    get: ok
+    post: ok
+  /api/users/{id}:
+    get: ok
+security: []
+servers:
+  - description: FmECG API local
+    url: https://localhost:4000
+    variables: {}
+  - description: FmECG API dev
+    url: https://dev.fmecg.vn
+    variables: {}
+  - description: FmECG API prod
+    url: https://fmecg.vn
+    variables: {}
+tags: []

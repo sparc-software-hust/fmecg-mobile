@@ -1,3 +1,4 @@
+// Openapi Generator last run: : 2026-01-21T00:17:05.562361
 import 'package:fmecg_mobile/app.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
 import 'package:fmecg_mobile/providers/bluetooth_provider.dart';
@@ -9,6 +10,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:openapi_generator_annotations/openapi_generator_annotations.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
@@ -23,6 +25,15 @@ void main() async {
   runApp(const FmECGApp());
 }
 
+@Openapi(
+  additionalProperties: DioProperties(pubName: 'fmecg_api', pubAuthor: 'sparc'),
+  inputSpec: InputSpec(path: 'lib/openapi/api_spec.yaml'),
+  generatorName: Generator.dio,
+  runSourceGenOnOutput: true,
+  outputDirectory: 'api/fmecg_api',
+  debugLogging: true,
+  skipSpecValidation: true,
+)
 class FmECGApp extends StatefulWidget {
   const FmECGApp({Key? key}) : super(key: key);
 

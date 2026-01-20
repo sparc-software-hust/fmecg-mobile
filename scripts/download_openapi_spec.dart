@@ -5,7 +5,7 @@ void main(List<String> args) async {
   // Configuration
   const String remoteUrl = 'https://api.fmecg.example.com/openapi.yaml';
   const String localhostUrl = 'http://localhost:4000/api/openapi/index.yaml';
-  const String outputPath = 'openapi/api_spec.yaml';
+  const String outputPath = 'lib/openapi/api_spec.yaml';
 
   // Parse command line arguments
   String mode = 'remote'; // default to remote
