@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
@@ -26,7 +27,7 @@ class BleLiveChart extends StatefulWidget {
 
 class _BleLiveChartState extends State<BleLiveChart> {
   final flutterReactiveBle = FlutterReactiveBle();
-  List<List<EcgDataPoint>> channelChartData = [];
+  List<Queue<EcgDataPoint>> channelChartData = [];
   List<ChartSeriesController?> chartSeriesControllers = [];
   List<CrosshairBehavior> crosshairBehaviors = [];
 
@@ -82,7 +83,7 @@ class _BleLiveChartState extends State<BleLiveChart> {
     crosshairBehaviors.clear();
 
     for (int i = 0; i < 6; i++) {
-      channelChartData.add([]);
+      channelChartData.add(Queue<EcgDataPoint>());
       chartSeriesControllers.add(null);
       crosshairBehaviors.add(
         CrosshairBehavior(
@@ -207,7 +208,8 @@ class _BleLiveChartState extends State<BleLiveChart> {
       // Save to CSV using the isolate-based saver (high frequency, non-blocking)
       _dataSaver?.addDataPoint(currentTime, channelDecimalValues);
 
-      if (count % 5 == 0) {
+      // Decimation: display every 10th sample (25Hz) for smoother UI
+      if (count % 10 == 0) {
         _updateChartDataWithRealData(channelVoltageValues);
       }
     } catch (e) {
@@ -220,15 +222,17 @@ class _BleLiveChartState extends State<BleLiveChart> {
 
     final double currentTime = _getCurrentTimeInSeconds();
     final double maxTimeWindow = timeWindowSeconds;
-    final int maxDataPoints = (maxTimeWindow * samplingRateHz).toInt();
+    // Max display points = time window * display rate (25Hz after decimation by 10)
+    final int maxDisplayPoints = (maxTimeWindow * samplingRateHz / 10).toInt();
 
     for (int i = 0; i < selectedChannels.length && i < channelVoltageValues.length; i++) {
       if (!selectedChannels[i]) continue;
 
-      if (channelChartData[i].length == maxDataPoints / 5) {
-        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[i]);
+      final newData = EcgDataPoint(currentTime, channelVoltageValues[i]);
 
-        channelChartData[i].removeAt(0);
+      if (channelChartData[i].length >= maxDisplayPoints) {
+        // Use removeFirst() for O(1) performance instead of removeAt(0)
+        channelChartData[i].removeFirst();
         channelChartData[i].add(newData);
 
         if (chartSeriesControllers[i] != null && mounted) {
@@ -243,7 +247,6 @@ class _BleLiveChartState extends State<BleLiveChart> {
           }
         }
       } else {
-        EcgDataPoint newData = EcgDataPoint(currentTime, channelVoltageValues[i]);
         channelChartData[i].add(newData);
 
         if (chartSeriesControllers[i] != null && mounted) {
@@ -265,10 +268,8 @@ class _BleLiveChartState extends State<BleLiveChart> {
     await _initializeFileAndDataSaver();
 
     subscribeStream = flutterReactiveBle.subscribeToCharacteristic(widget.bluetoothCharacteristic).listen((value) {
+      count += 1;
       _processBluetoothData(value);
-      setState(() {
-        count += 1;
-      });
     });
   }
 
@@ -506,18 +507,21 @@ class _BleLiveChartState extends State<BleLiveChart> {
                                                       ? size.height *
                                                           0.35 // Use 35% for 2 charts
                                                       : size.height * 0.25), // Use 25% for 3+ charts
-                                          child: ECGChartWidget(
-                                            channelIndex: channelIndex,
-                                            legendTitle: channelNames[channelIndex],
-                                            chartColor: chartColors[channelIndex],
-                                            chartData: channelChartData[channelIndex],
-                                            crosshairBehavior: crosshairBehaviors[channelIndex],
-                                            timeWindowSeconds: timeWindowSeconds,
-                                            onRendererCreated: (controller) {
-                                              if (mounted) {
-                                                chartSeriesControllers[channelIndex] = controller;
-                                              }
-                                            },
+                                          // RepaintBoundary isolates chart repaints from rest of UI
+                                          child: RepaintBoundary(
+                                            child: ECGChartWidget(
+                                              channelIndex: channelIndex,
+                                              legendTitle: channelNames[channelIndex],
+                                              chartColor: chartColors[channelIndex],
+                                              chartData: channelChartData[channelIndex].toList(),
+                                              crosshairBehavior: crosshairBehaviors[channelIndex],
+                                              timeWindowSeconds: timeWindowSeconds,
+                                              onRendererCreated: (controller) {
+                                                if (mounted) {
+                                                  chartSeriesControllers[channelIndex] = controller;
+                                                }
+                                              },
+                                            ),
                                           ),
                                         ),
                                       ),
