@@ -2,16 +2,17 @@
 
 import 'dart:convert';
 
-import 'package:fmecg_mobile/constants/api_constant.dart';
-import 'package:fmecg_mobile/networks/http_dio.dart';
+import 'package:flutter/material.dart';
+import 'package:fmecg_mobile/config/env_config.dart';
 import 'package:fmecg_mobile/providers/user_provider.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ThemeType { dark, light }
+
+const Map<String, String> _jsonHeaders = {'Content-Type': 'application/json;charset=UTF-8'};
 
 UserProvider userProvider = Provider.of<UserProvider>(Utils.globalContext!, listen: false);
 
@@ -19,7 +20,6 @@ class AuthProvider extends ChangeNotifier {
   String _accessToken = "";
   String _refreshToken = "";
   Map<String, dynamic>? _userInfo;
-  final String _firebaseToken = "";
   DateTime? _expiryDate;
   final int _userId = 0;
   int _roleId = -1;
@@ -184,20 +184,12 @@ class AuthProvider extends ChangeNotifier {
     return _locale;
   }
 
-  void _checkAndSaveFirebaseToken() async {
-    // bool isFirebaseTokenExisted =
-    //     await FmECGFirebaseMessage().checkFirebaseTokenExist(_firebaseToken);
-    // if (!isFirebaseTokenExisted) {
-    //   await FmECGFirebaseMessage().saveTokenToFirestore(_userId, _firebaseToken);
-    // }
-  }
-
   Future<void> registerUser(String email, String password) async {
     // call API with email and password
-    String url = apiConstant.apiUrl + 'register';
+    String url = '${EnvConfig.apiUrl}/register';
     final bodyEncoded = jsonEncode({"email": email, "password": password});
     try {
-      final response = await http.post(Uri.parse(url), headers: apiConstant.headers, body: bodyEncoded);
+      final response = await http.post(Uri.parse(url), headers: _jsonHeaders, body: bodyEncoded);
       final responseData = jsonDecode(response.body);
       if (responseData["status"] == "success") {
         // do something with data
@@ -205,36 +197,6 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (err) {
       debugPrint('error from register: $err');
-    }
-  }
-
-  Future<void> logoutUser() async {
-    // call API with email and password
-    String url = apiConstant.apiUrl + 'logout';
-    try {
-      // final response = await http.get(
-      //   Uri.parse(url),
-      //   headers: {...apiConstant.headers, 'Cookie': 'token=$_accessToken'},
-      // );
-      // final responseData = jsonDecode(response.body);
-
-      // if (responseData["status"] == "success") {
-      //   // do something with data
-      //   _accessToken = "";
-      //   _refreshToken = '';
-      //   _accessToken = "";
-      //   _email = "";
-      //   _roleId = -1;
-      //   _expiryDate = null;
-      //   final prefs = await SharedPreferences.getInstance();
-      //   await prefs.clear();
-      //   notifyListeners();
-      // }
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      notifyListeners();
-    } catch (err) {
-      debugPrint('error from logout: $err');
     }
   }
 }

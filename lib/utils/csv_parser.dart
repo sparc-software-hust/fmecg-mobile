@@ -1,25 +1,17 @@
 import 'dart:io';
 
 /// CSV parser for reading and writing ECG data files.
-/// 
+///
 /// Handles parsing of CSV files with time and channel data columns.
 class CsvParser {
   /// Default headers for 6-channel ECG data.
-  static const List<String> defaultEcgHeaders = [
-    'time',
-    'ch1',
-    'ch2',
-    'ch3',
-    'ch4',
-    'ch5',
-    'ch6',
-  ];
+  static const List<String> defaultEcgHeaders = ['time', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6'];
 
   /// Parse a CSV file and return the data as a list of rows.
-  /// 
+  ///
   /// [file] - The CSV file to parse
   /// [skipHeader] - Whether to skip the first row (header)
-  /// 
+  ///
   /// Returns a list of rows, where each row is a list of string values.
   static Future<List<List<String>>> parseFile(File file, {bool skipHeader = true}) async {
     if (!await file.exists()) {
@@ -31,12 +23,12 @@ class CsvParser {
   }
 
   /// Parse a CSV string and return the data as a list of rows.
-  /// 
+  ///
   /// [content] - The CSV content as a string
   /// [skipHeader] - Whether to skip the first row (header)
   static List<List<String>> parseString(String content, {bool skipHeader = true}) {
     final List<String> lines = content.trim().split('\n');
-    
+
     if (lines.isEmpty) {
       return [];
     }
@@ -55,9 +47,9 @@ class CsvParser {
   }
 
   /// Parse a CSV file and return the data as typed ECG data.
-  /// 
+  ///
   /// [file] - The CSV file to parse
-  /// 
+  ///
   /// Returns a list of EcgDataRow objects.
   static Future<List<EcgDataRow>> parseEcgFile(File file) async {
     final List<List<String>> rows = await parseFile(file, skipHeader: true);
@@ -65,44 +57,42 @@ class CsvParser {
   }
 
   /// Convert a list of values to a CSV row string.
-  /// 
+  ///
   /// [values] - List of values to convert
   /// [decimalPlaces] - Number of decimal places for double values
   static String rowToString(List<dynamic> values, {int decimalPlaces = 6}) {
-    return values.map((value) {
-      if (value is double) {
-        return value.toStringAsFixed(decimalPlaces);
-      }
-      return value.toString();
-    }).join(',');
+    return values
+        .map((value) {
+          if (value is double) {
+            return value.toStringAsFixed(decimalPlaces);
+          }
+          return value.toString();
+        })
+        .join(',');
   }
 
   /// Convert a list of rows to a complete CSV string with headers.
-  /// 
+  ///
   /// [rows] - List of rows to convert
   /// [headers] - Optional custom headers (uses defaultEcgHeaders if not provided)
   /// [decimalPlaces] - Number of decimal places for double values
-  static String toCSVString(
-    List<List<dynamic>> rows, {
-    List<String>? headers,
-    int decimalPlaces = 6,
-  }) {
+  static String toCSVString(List<List<dynamic>> rows, {List<String>? headers, int decimalPlaces = 6}) {
     final StringBuffer sb = StringBuffer();
-    
+
     // Write headers
     final List<String> headerRow = headers ?? defaultEcgHeaders;
     sb.writeln(headerRow.join(','));
-    
+
     // Write data rows
     for (final row in rows) {
       sb.writeln(rowToString(row, decimalPlaces: decimalPlaces));
     }
-    
+
     return sb.toString();
   }
 
   /// Write data to a CSV file.
-  /// 
+  ///
   /// [file] - The file to write to
   /// [rows] - List of rows to write
   /// [headers] - Optional custom headers
@@ -114,7 +104,7 @@ class CsvParser {
     bool append = false,
   }) async {
     final String content = toCSVString(rows, headers: headers);
-    
+
     if (append) {
       await file.writeAsString(content, mode: FileMode.append);
     } else {
@@ -123,7 +113,7 @@ class CsvParser {
   }
 
   /// Get the headers from a CSV file.
-  /// 
+  ///
   /// [file] - The CSV file to read headers from
   static Future<List<String>> getHeaders(File file) async {
     if (!await file.exists()) {
@@ -132,7 +122,7 @@ class CsvParser {
 
     final String content = await file.readAsString();
     final List<String> lines = content.trim().split('\n');
-    
+
     if (lines.isEmpty) {
       return [];
     }
@@ -141,7 +131,7 @@ class CsvParser {
   }
 
   /// Count the number of data rows in a CSV file (excluding header).
-  /// 
+  ///
   /// [file] - The CSV file to count rows in
   static Future<int> countRows(File file) async {
     if (!await file.exists()) {
@@ -150,7 +140,7 @@ class CsvParser {
 
     final String content = await file.readAsString();
     final List<String> lines = content.trim().split('\n');
-    
+
     // Subtract 1 for header
     return lines.length > 1 ? lines.length - 1 : 0;
   }
@@ -161,10 +151,7 @@ class EcgDataRow {
   final double time;
   final List<double> channelValues;
 
-  EcgDataRow({
-    required this.time,
-    required this.channelValues,
-  });
+  EcgDataRow({required this.time, required this.channelValues});
 
   /// Create an EcgDataRow from a CSV row (list of strings).
   factory EcgDataRow.fromCsvRow(List<String> row) {

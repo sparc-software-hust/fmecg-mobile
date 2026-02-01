@@ -1,4 +1,3 @@
-// Openapi Generator last run: : 2026-01-21T00:17:05.562361
 import 'package:fmecg_mobile/app.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
 import 'package:fmecg_mobile/providers/bluetooth_provider.dart';

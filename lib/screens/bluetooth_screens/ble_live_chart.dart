@@ -7,6 +7,7 @@ import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/ecg_packet_parser.dart';
 import 'package:fmecg_mobile/controllers/high_frequency_data_saver.dart';
 import 'package:fmecg_mobile/generated/l10n.dart';
+import 'package:fmecg_mobile/repositories/ecg_records_repository.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,11 @@ class _BleLiveChartState extends State<BleLiveChart> {
   File? _fileToSave;
   HighFrequencyDataSaver? _dataSaver;
 
+  // API upload fields
+  late EcgRecordsRepository _recordsRepository;
+  bool _isUploading = false;
+  double _uploadProgress = 0.0;
+
   // ECG-style chart colors for different channels
   final List<Color> chartColors = [
     const Color(0xFF00FF41), // Bright green - classic ECG monitor color
@@ -64,6 +70,10 @@ class _BleLiveChartState extends State<BleLiveChart> {
     super.initState();
     count = 0;
     _initializeChartData();
+
+    // Initialize the API repository
+    // Uses EnvConfig.apiBaseUrl from environment configuration
+    _recordsRepository = EcgRecordsRepository();
   }
 
   @override
@@ -188,6 +198,66 @@ class _BleLiveChartState extends State<BleLiveChart> {
     }
 
     return Utils.showDialogWarningError(context, false, "Data saved successfully to ${_fileToSave?.path}");
+  }
+
+  Future<void> _uploadToServer() async {
+    if (_fileToSave == null) {
+      if (mounted) {
+        Utils.showDialogWarningError(context, true, "No file to upload. Please save a recording first.");
+      }
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+      _uploadProgress = 0.0;
+    });
+
+    try {
+      // Prepare metadata
+      final metadata = {
+        'device_id': widget.deviceConnected.id,
+        'device_name': widget.deviceConnected.name,
+        'recorded_at': DateTime.now().toIso8601String(),
+        'sampling_rate': samplingRateHz,
+        'duration_seconds': timeWindowSeconds,
+        'channels': selectedChannels.asMap().entries.where((e) => e.value).map((e) => channelNames[e.key]).toList(),
+      };
+
+      // Upload with progress tracking
+      final record = await _recordsRepository.uploadRecording(
+        file: _fileToSave!,
+        metadata: metadata,
+        onUploadProgress: (sent, total) {
+          setState(() {
+            _uploadProgress = sent / total;
+          });
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          isUploaded = true;
+        });
+
+        if (record != null) {
+          Utils.showDialogWarningError(
+            context,
+            false,
+            "Upload successful!\n\nRecord ID: ${record.id}\nFilename: ${record.filename}\nFile Size: ${(record.fileSize ?? 0) / 1024} KB",
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+
+        Utils.showDialogWarningError(context, true, "Upload failed: ${e.toString()}");
+      }
+    }
   }
 
   double _getCurrentTimeInSeconds() {
@@ -432,8 +502,44 @@ class _BleLiveChartState extends State<BleLiveChart> {
                 onPressed: _dataSaver?.isInitialized == true ? _handleSaveRecordInFile : null,
                 child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAF50),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  minimumSize: const Size(0, 32),
+                ),
+                onPressed: _fileToSave != null && !_isUploading && !isMeasuring ? _uploadToServer : null,
+                child:
+                    _isUploading
+                        ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                        : const Text('Upload', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              ),
             ],
           ),
+          if (_isUploading)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Column(
+                children: [
+                  LinearProgressIndicator(value: _uploadProgress),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Uploading: ${(_uploadProgress * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(fontSize: 11, color: Colors.blue),
+                  ),
+                ],
+              ),
+            ),
           if (_numberOfSelectedChannels == 0)
             Padding(
               padding: const EdgeInsets.only(top: 4.0),

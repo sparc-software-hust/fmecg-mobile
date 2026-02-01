@@ -1,2 +1,28 @@
 [tools]
 flutter = "3.35.1"
+
+# Tasks for running app with different environments
+[tasks.local]
+description = "Run app with local environment"
+run = "flutter run --dart-define=API_BASE_URL=http://localhost:4000"
+
+[tasks.dev]
+description = "Run app with dev environment"
+run = "flutter run --dart-define=API_BASE_URL=http://103.200.20.59:3000"
+
+[tasks.prod]
+description = "Run app with production environment"
+run = "flutter run --release --dart-define=API_BASE_URL=https://api.fmecg.com"
+
+# Build tasks
+[tasks."build:local"]
+description = "Build APK with local environment"
+run = "flutter build apk --dart-define=API_BASE_URL=http://localhost:4000"
+
+[tasks."build:dev"]
+description = "Build APK with dev environment"
+run = "flutter build apk --dart-define=API_BASE_URL=http://103.200.20.59:3000"
+
+[tasks."build:prod"]
+description = "Build APK with production environment"
+run = "flutter build apk --release --dart-define=API_BASE_URL=https://api.fmecg.com"

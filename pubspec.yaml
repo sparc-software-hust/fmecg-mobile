@@ -80,6 +80,10 @@ dependencies:
   openapi_generator_annotations: ^6.1.0
   json_annotation: ^4.8.1
 
+  # Generated API client
+  fmecg_api:
+    path: api/fmecg_api
+
 dependency_overrides:
   ffi: 2.0.1
   # intl: ^0.18.0

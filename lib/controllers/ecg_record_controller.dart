@@ -1,4 +1,4 @@
-import 'package:fmecg_mobile/constants/api_constant.dart';
+import 'package:fmecg_mobile/config/env_config.dart';
 import 'package:fmecg_mobile/providers/ecg_provider.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
@@ -10,7 +10,7 @@ ECGProvider ecgProvider = Utils.globalContext!.read<ECGProvider>();
 
 class ECGRecordController {
   static Future<void> uploadFileToDB(Map fileUploadInformation) async {
-    final url = apiConstant.apiUrl + 'api/record';
+    final url = '${EnvConfig.apiUrl}/api/record';
 
     final String filePath = fileUploadInformation["file_path"];
     final MultipartFile fileData = await MultipartFile.fromFile(
@@ -29,7 +29,7 @@ class ECGRecordController {
 
   static Future<void> getAllECGRecords(int userId) async {
     try {
-      final String url = apiConstant.apiUrl + 'ecg-records/patient/$userId';
+      final String url = '${EnvConfig.apiUrl}/ecg-records/patient/$userId';
       final Response response = await Dio().get(url);
 
       final responseData = response.data;
@@ -44,7 +44,7 @@ class ECGRecordController {
 
   static Future<void> getDataECGRecordById(int recordId) async {
     try {
-      final String url = apiConstant.apiUrl + 'ecg-records/record-data/$recordId';
+      final String url = '${EnvConfig.apiUrl}/ecg-records/record-data/$recordId';
 
       final Response response = await Dio().get(url);
       final responseData = response.data;

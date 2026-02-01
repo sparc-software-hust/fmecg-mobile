@@ -181,7 +181,7 @@ class _PersonalInforState extends State<PersonalInfor> {
                       onPressed: () async {
                         try {
                           // Gọi hàm logout
-                          await Provider.of<AuthProvider>(context, listen: false).logoutUser();
+                          // await Provider.of<AuthProvider>(context, listen: false).logoutUser();
                           if (context.mounted) {
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(builder: (context) => const SignInScreen()),

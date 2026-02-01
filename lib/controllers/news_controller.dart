@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:fmecg_mobile/constants/api_constant.dart';
+import 'package:fmecg_mobile/config/env_config.dart';
 import 'package:fmecg_mobile/providers/news_provider.dart';
 import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 NewsProvider newsProvider = Utils.globalContext!.read<NewsProvider>();
 
 class NewsController {
-  static String apiGetAllNews = apiConstant.apiUrl + 'news';
+  static String get apiGetAllNews => '${EnvConfig.apiUrl}/news';
 
   static Future<void> getAllNews() async {
     try {
