@@ -43,7 +43,6 @@ class _BleLiveChartState extends State<BleLiveChart> {
   bool isCalculated = false;
   DateTime? startTime;
 
-  // File management
   File? _fileToSave;
   HighFrequencyDataSaver? _dataSaver;
 
