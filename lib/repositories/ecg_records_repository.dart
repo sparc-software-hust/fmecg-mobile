@@ -8,7 +8,7 @@ import 'package:fmecg_mobile/config/env_config.dart';
 class EcgRecordsRepository {
   final FmecgApi _api;
 
-  EcgRecordsRepository({String? baseUrl}) : _api = FmecgApi(basePathOverride: baseUrl ?? EnvConfig.apiBaseUrl);
+  EcgRecordsRepository({String? apiUrl}) : _api = FmecgApi(basePathOverride: apiUrl ?? EnvConfig.apiUrl);
 
   /// Upload an ECG recording file to the server
   ///
@@ -69,17 +69,6 @@ class EcgRecordsRepository {
         throw Exception('Record not found');
       }
       rethrow;
-    }
-  }
-
-  /// Check if the server is reachable
-  Future<bool> checkServerConnection() async {
-    try {
-      // Try to make a simple request to check connectivity
-      await _api.getDio().get('/health');
-      return true;
-    } catch (e) {
-      return false;
     }
   }
 }

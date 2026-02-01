@@ -71,8 +71,6 @@ class _BleLiveChartState extends State<BleLiveChart> {
     count = 0;
     _initializeChartData();
 
-    // Initialize the API repository
-    // Uses EnvConfig.apiBaseUrl from environment configuration
     _recordsRepository = EcgRecordsRepository();
   }
 

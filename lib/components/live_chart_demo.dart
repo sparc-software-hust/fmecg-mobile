@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -6,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:fmecg_mobile/components/ecg_chart_widget.dart';
 import 'package:fmecg_mobile/components/one_perfect_chart.dart';
 import 'package:fmecg_mobile/controllers/high_frequency_data_saver.dart';
+import 'package:fmecg_mobile/repositories/ecg_records_repository.dart';
 import 'package:fmecg_mobile/utils/files_management.dart';
+import 'package:fmecg_mobile/utils/utils.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class LiveChartDemo extends StatefulWidget {
@@ -32,7 +35,13 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
   DateTime? startTime;
 
   // File management
+  File? _fileToSave;
   HighFrequencyDataSaver? _dataSaver;
+
+  // API upload fields
+  late EcgRecordsRepository _recordsRepository;
+  bool _isUploading = false;
+  double _uploadProgress = 0.0;
 
   // Pre-allocated typed array for channel values (used in data collection)
   final Float64List _channelValuesBuffer = Float64List(6);
@@ -55,6 +64,9 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
     super.initState();
     count = 0;
     _initializeChartData();
+
+    // Initialize the API repository
+    _recordsRepository = EcgRecordsRepository();
   }
 
   @override
@@ -130,6 +142,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
     // Close the data saver
     await _dataSaver?.close();
     _dataSaver = null;
+    _fileToSave = null;
 
     if (mounted) {
       setState(() {
@@ -140,17 +153,17 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
 
   Future<void> _initializeFileAndDataSaver() async {
     // Create a new file for this recording session
-    final file = await FilesManagement.getFilePath();
+    _fileToSave = await FilesManagement.getFilePath();
 
     // Delete existing file and create a fresh one
-    if (await file.exists()) {
-      await file.delete();
+    if (await _fileToSave!.exists()) {
+      await _fileToSave!.delete();
     }
-    await file.create(recursive: true);
+    await _fileToSave!.create(recursive: true);
 
     // Initialize the high-frequency data saver
     _dataSaver = HighFrequencyDataSaver(
-      file: file,
+      file: _fileToSave!,
       bufferSize: 250, // Flush every 1 second at 250Hz
       headers: const ['time', 'ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6'],
     );
@@ -248,6 +261,105 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
         setState(() {});
       }
     });
+  }
+
+  Future<void> _handleSaveRecordInFile() async {
+    if (isMeasuring) {
+      dataCollectionTimer?.cancel();
+    }
+
+    // Close the data saver to flush remaining data
+    await _dataSaver?.close();
+    _dataSaver = null;
+
+    _clearDataInChart();
+
+    if (mounted) {
+      setState(() {
+        isMeasuring = false;
+      });
+    }
+
+    if (_fileToSave != null && mounted) {
+      return Utils.showDialogWarningError(
+        context,
+        false,
+        "Data saved successfully to ${_fileToSave?.path}",
+      );
+    }
+  }
+
+  Future<void> _uploadToServer() async {
+    if (_fileToSave == null) {
+      if (mounted) {
+        Utils.showDialogWarningError(
+          context,
+          true,
+          "No file to upload. Please save a recording first.",
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+      _uploadProgress = 0.0;
+    });
+
+    try {
+      // Prepare metadata for demo data
+      final metadata = {
+        'device_id': 'demo-device',
+        'device_name': 'Demo ECG Generator',
+        'recorded_at': DateTime.now().toIso8601String(),
+        'sampling_rate': samplingRateHz,
+        'duration_seconds': timeWindowSeconds,
+        'channels': selectedChannels
+            .asMap()
+            .entries
+            .where((e) => e.value)
+            .map((e) => channelNames[e.key])
+            .toList(),
+        'is_demo': true,
+      };
+
+      // Upload with progress tracking
+      final record = await _recordsRepository.uploadRecording(
+        file: _fileToSave!,
+        metadata: metadata,
+        onUploadProgress: (sent, total) {
+          setState(() {
+            _uploadProgress = sent / total;
+          });
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+
+        if (record != null) {
+          Utils.showDialogWarningError(
+            context,
+            false,
+            "Upload successful!\n\nRecord ID: ${record.id}\nFilename: ${record.filename}\nFile Size: ${(record.fileSize ?? 0) / 1024} KB",
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+
+        Utils.showDialogWarningError(
+          context,
+          true,
+          "Upload failed: ${e.toString()}",
+        );
+      }
+    }
   }
 
   Widget _buildCompactControls() {
@@ -390,8 +502,55 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
                 ),
               ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196F3),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  minimumSize: const Size(0, 32),
+                ),
+                onPressed: _dataSaver?.isInitialized == true ? _handleSaveRecordInFile : null,
+                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAF50),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  minimumSize: const Size(0, 32),
+                ),
+                onPressed: _fileToSave != null && !_isUploading && !isMeasuring ? _uploadToServer : null,
+                child: _isUploading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Upload', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              ),
             ],
           ),
+          if (_isUploading)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Column(
+                children: [
+                  LinearProgressIndicator(value: _uploadProgress),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Uploading: ${(_uploadProgress * 100).toStringAsFixed(0)}%',
+                    style: const TextStyle(fontSize: 11, color: Colors.blue),
+                  ),
+                ],
+              ),
+            ),
           if (_numberOfSelectedChannels == 0)
             Padding(
               padding: const EdgeInsets.only(top: 4.0),

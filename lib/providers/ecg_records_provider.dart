@@ -18,7 +18,7 @@ class EcgRecordsProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   Record? get lastUploadedRecord => _lastUploadedRecord;
 
-  EcgRecordsProvider({String? baseUrl}) : _repository = EcgRecordsRepository(baseUrl: baseUrl ?? EnvConfig.apiBaseUrl);
+  EcgRecordsProvider({String? baseUrl}) : _repository = EcgRecordsRepository(apiUrl: baseUrl ?? EnvConfig.apiBaseUrl);
 
   /// Upload an ECG recording file to the server
   ///
