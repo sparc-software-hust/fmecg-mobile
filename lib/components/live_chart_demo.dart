@@ -281,22 +281,14 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
     }
 
     if (_fileToSave != null && mounted) {
-      return Utils.showDialogWarningError(
-        context,
-        false,
-        "Data saved successfully to ${_fileToSave?.path}",
-      );
+      return Utils.showDialogWarningError(context, false, "Data saved successfully to ${_fileToSave?.path}");
     }
   }
 
   Future<void> _uploadToServer() async {
     if (_fileToSave == null) {
       if (mounted) {
-        Utils.showDialogWarningError(
-          context,
-          true,
-          "No file to upload. Please save a recording first.",
-        );
+        Utils.showDialogWarningError(context, true, "No file to upload. Please save a recording first.");
       }
       return;
     }
@@ -314,12 +306,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
         'recorded_at': DateTime.now().toIso8601String(),
         'sampling_rate': samplingRateHz,
         'duration_seconds': timeWindowSeconds,
-        'channels': selectedChannels
-            .asMap()
-            .entries
-            .where((e) => e.value)
-            .map((e) => channelNames[e.key])
-            .toList(),
+        'channels': selectedChannels.asMap().entries.where((e) => e.value).map((e) => channelNames[e.key]).toList(),
         'is_demo': true,
       };
 
@@ -353,11 +340,7 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
           _isUploading = false;
         });
 
-        Utils.showDialogWarningError(
-          context,
-          true,
-          "Upload failed: ${e.toString()}",
-        );
+        Utils.showDialogWarningError(context, true, "Upload failed: ${e.toString()}");
       }
     }
   }
@@ -524,16 +507,17 @@ class _LiveChartDemoState extends State<LiveChartDemo> {
                   minimumSize: const Size(0, 32),
                 ),
                 onPressed: _fileToSave != null && !_isUploading && !isMeasuring ? _uploadToServer : null,
-                child: _isUploading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text('Upload', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                child:
+                    _isUploading
+                        ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                        : const Text('Upload', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               ),
             ],
           ),
