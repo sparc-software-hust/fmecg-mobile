@@ -22,7 +22,7 @@ class MainScreen extends StatelessWidget {
         title: const Text('ECG Monitor', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
         backgroundColor: Colors.white,
         elevation: 2,
-        shadowColor: Colors.grey.withOpacity(0.3),
+        shadowColor: Colors.grey.withValues(alpha: 0.3),
       ),
       body: SafeArea(
         child: Padding(
