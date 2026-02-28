@@ -164,14 +164,6 @@ Consumer<ECGProvider>(
 | `lib/openapi/api_spec.yaml` | API specification |
 | `mise.toml` | Task runner configuration |
 
-## Testing
-
-```bash
-flutter test
-```
-
-Testing infrastructure is minimal. Unit tests can be added in the `/test` directory.
-
 ## Localization
 
 Supported: English (`en`), Vietnamese (`vi`)
