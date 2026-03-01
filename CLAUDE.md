@@ -164,12 +164,6 @@ Consumer<ECGProvider>(
 | `lib/openapi/api_spec.yaml` | API specification |
 | `mise.toml` | Task runner configuration |
 
-## Localization
-
-Supported: English (`en`), Vietnamese (`vi`)
-
-Usage: `S.current.{key}` for localized strings.
-
 ## Notes
 
 - ECG data is saved as CSV using isolates for non-blocking I/O
